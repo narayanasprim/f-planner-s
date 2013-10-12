@@ -1,3 +1,4 @@
+
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
@@ -12,7 +13,7 @@ public class SVConnector{
 	private String Id;
 	private final String SERVER_IP = "203.252.182.162";
 	private final int SERVER_PORT = 12012;
-	
+	public String SVresult = "";
 	public SVConnector()
 	{
 		oos = null;
@@ -24,35 +25,71 @@ public class SVConnector{
 	{
 		boolean result = false;
 		
-			try
+		Thread t = new Thread(){
+			@Override
+			public void run()
 			{
-				sock = new Socket(SERVER_IP,SERVER_PORT);
-				oos = new ObjectOutputStream(sock.getOutputStream());
-				result = true;
+				try
+				{
+					sock = new Socket(SERVER_IP,SERVER_PORT);
+					oos = new ObjectOutputStream(sock.getOutputStream());
+				}
+				catch(Exception ex)
+				{
+					System.out.println("[SVConnector] connectServer error " +ex);
+				}
 			}
-			catch(Exception ex)
-			{
-				System.out.println("[SVConnector] connectServer error " +ex);
-			}
+		};
+		t.start();
+		
+		while(t.isAlive());
+		
+		if(this.oos!=null) result = true;
 			
 		return result;
 	}
+	
+	/*아이디 값 얻기*/
+	public void setId(String id)
+	{
+		this.Id = id;
+	}
+	/*소켓 객체 얻음*/
+	public Socket getSocket()
+	{
+		return this.sock;
+	}
 	/*로그인*/
-	public String Login(String id, String pw)
+	public String Login(final String id, final String pw)
 	{
 		String result = "FAIL";
-		try
+		
+		Thread t = new Thread()
 		{
-			oos.writeUTF("[Login]"+id+"/"+pw);
-			oos.flush();
-			if(null==ois) ois = new ObjectInputStream(this.sock.getInputStream());
-			result = ois.readUTF();
-			id = this.Id;
-		}
-		catch(Exception ex)
-		{
-			System.out.println("[SVConnector] Login error " +ex);
-		}
+			@Override
+			public void run()
+			{
+				try
+				{
+					oos.writeUTF("[Login]"+id+"/"+pw);
+					oos.flush();
+					if(null==ois) ois = new ObjectInputStream(getSocket().getInputStream());
+					SVresult = ois.readUTF();
+					setId(id);
+				}
+				catch(Exception ex)
+				{
+					System.out.println("[SVConnector] Login error " +ex);
+				}
+			}
+		};
+		
+		t.start();
+		
+		while(t.isAlive());
+		
+		result = SVresult;
+	
 		return result;
 	}
 	/*사용자 추가*/
