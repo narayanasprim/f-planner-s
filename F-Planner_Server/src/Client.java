@@ -14,19 +14,73 @@ public class Client {
 		System.out.println("우선순위 : " + sch.Priority);
 	}
 	
+	public static void printMessage(Message m)
+	{
+		System.out.println("그룹번호 : " + m.Gid);
+		System.out.println("리더 : " + m.leader);
+		System.out.println("내용 : " + m.content);
+		System.out.println("타입 : " + m.type);
+		System.out.println("현재 결정 : " + m.decision);
+		System.out.println("받은시간 : " + m.time);
+	}
+
+	public static void printGroupInfo(Group g)
+	{
+		System.out.println("그룹 번호 : " + g.Gid);
+		System.out.println("그룹 리더 : " + g.Leader);
+		System.out.println("그룹 이름 : " + g.Gname);
+		System.out.println("그룹 사람들 : " + g.People);
+		System.out.println("그룹 사람 수 : " + g.Pcount);
+		System.out.println("그룹 내용 : " + g.Content);
+		System.out.println("그룹 시작범위날짜 : " + g.sDate);
+		System.out.println("그룹 종료범위날짜 : " + g.eDate);
+		System.out.println("그룹 이용시간 : " + g.aTime);
+		System.out.println("그룹 생성시간 : " + g.DATE);
+	}
+	
 	public static void main(String[] args) {
 		try {
 			
 			SVConnector sc = new SVConnector();
 			if(sc.connectServer()) System.out.println("서버 접속 성공");
-			System.out.println("로그인 시도-> "+sc.Login("한글3", "비밀번호"));//로그인
+//			System.out.println("로그인 시도-> "+sc.Login("호진", "a"));//로그인
+//			System.out.println("로그인 시도-> "+sc.Login("다운", "b"));//로그인
+//			System.out.println("로그인 시도-> "+sc.Login("기문", "c"));//로그인
+			System.out.println("로그인 시도-> "+sc.Login("영준", "d"));
+			/*
+			ArrayList<String> ph = new ArrayList<String>();
+			ph.add("01063360267");//다운
+			ph.add("01012341234");//기문
+			ph.add("01012345678");//영준
+			
+			boolean result = sc.requestGroupTime("새로운그룹", ph, "오늘 모이자", "201310150500", "201310150900", "120", "REQUEST");
+			System.out.println("요청 결과 : " + result);
+			*/
+			
+			System.out.println("메시지 확인 ↓--------------- ");
+			Message[] message = sc.getAllMessages();
+			for(Message m : message)
+			printMessage(m);
+			
+			Thread.sleep(4000);
+			
+			System.out.println("----------------------------");
+			//첫번째 메시지 승낙!
+			boolean result = sc.sendOpinion(message[0].Gid, "ACCEPT");
+			System.out.println("메시지 결과 " + result);
+			
+			
+			
+//			System.out.println("그룹 정보 확인 ↓ ");
+//			Group[] group = sc.getAllGroupInfo();
+//			for(Group g : group)
+//			printGroupInfo(g);
+			
 
-			//System.out.println("메시지 확인 ↓ ");
 			
-			//ArrayList<String> temp = sc.getAllMessages();
-			//for(int i=0; i<temp.size(); i++)
-				//System.out.println(temp.get(i));
+	
 			
+
 //			Schedule[] schedule = sc.getSchedules();
 //			Schedule schedule = new Schedule("새롭게 변경한","201310080920","201310090920","Thu","장소","에서 테스트중",'F','B');
 //			System.out.println("변경 결과 -> " + sc.modifySchedule(4, schedule));
@@ -36,20 +90,7 @@ public class Client {
 //			System.out.println("스케줄 추가 결과 : "+sc.addSchedule(schedule));
 //			System.out.println(sc.addUser("테스터", "비밀"));
 //			System.out.println(sc.checkID("한글1"));
-			/*
-			if(null != sc.getSchedule(5) )
-			{
-				Schedule sch = sc.getSchedule(5);
-				System.out.println("제목 : " + sch.Title);
-				System.out.println("시작날짜 : " + sch.sDate);
-				System.out.println("종료날짜 : " + sch.eDate);
-				System.out.println("요일 : " + sch.Day);
-				System.out.println("장소 : " + sch.Place);
-				System.out.println("내용 : " + sch.Content);
-				System.out.println("반복 : " + sch.Replay);
-				System.out.println("우선순위 : " + sch.Priority);
-			}
-			*/
+		
 			
 			if(sc.EXIT()) System.out.println("연결 종료 성공!"); 
 			
