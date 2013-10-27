@@ -2,9 +2,9 @@ package com.f_planner_app;
 import java.io.Serializable;
 
 
-@SuppressWarnings("serial")
 public class gPacket implements Serializable{
 	
+	private static final long serialVersionUID = 1L;
 	private Group[] group;
 	
 	public gPacket(Group g)
