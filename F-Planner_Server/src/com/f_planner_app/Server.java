@@ -1,3 +1,4 @@
+package com.f_planner_app;
 import java.awt.BorderLayout;
 import java.awt.List;
 import java.io.IOException;
@@ -100,7 +101,7 @@ public class Server extends JFrame{
 		
 		ClientRequest(Socket sock)
 		{
-			dc = new DBConnector();
+			dc = new DBConnector(display);
 			try {
 				oos = new ObjectOutputStream(sock.getOutputStream());
 				ois = new ObjectInputStream(sock.getInputStream());
@@ -118,8 +119,21 @@ public class Server extends JFrame{
 				while((msg = ois.readUTF()) !=null)
 				{
 					if(msg.indexOf("[Login]") != -1) Login(msg);
-					else if(msg.indexOf("[GetMessages]") != -1) GetMessages();
-					else if(msg.indexOf("[Notification]") != -1) NotificationMessage();
+					else if(msg.indexOf("[GetAllGroupInfo]") != -1)
+					{
+						try{
+							
+							gPacket packet = new gPacket(dc.getAllGroupInfo());
+							oos.writeObject(packet);
+							oos.flush();
+							
+						}catch(Exception ex){
+							System.out.println("[Server] GetAllGroupInfo error " + ex);
+						}
+					}
+					else if(msg.indexOf("[GetAllMessages]") != -1) GetAllMessages();
+					else if(msg.indexOf("[SendOpinion]") != -1) SendOpinion(msg);
+					else if(msg.indexOf("[RequestGroupTime]") != -1) RequestGroupTime();
 					else if(msg.indexOf("[AddSchedule]") != -1) AddSchedule();
 					else if(msg.indexOf("[GetSchedule]") != -1) GetSchedule(msg);
 					else if(msg.indexOf("[GetSchedules]") != -1) GetSchedules();
@@ -128,7 +142,7 @@ public class Server extends JFrame{
 					else if(msg.indexOf("[DeleteAllSchedules]") != -1) DeleteAllSchedules();
 					else if(msg.indexOf("[CheckId]") != -1) CheckId(msg);
 					else if(msg.indexOf("[AddUser]") != -1) AddUser(msg);
-					else if(msg.indexOf("[EXIT]") != -1) {EXIT(); break;}
+					else if(msg.indexOf("[EXIT]") != -1)  break;
 
 					display.setSelectionStart(display.getText().length());
 				}
@@ -139,11 +153,47 @@ public class Server extends JFrame{
 			finally
 			{
 				try{
+					EXIT();
 					ois.close();
 					oos.close();
 				}catch(Exception e){}
 			}
 		}//end of run
+		/*사용자에게 전송된 모든 메시지를 받음*/
+		public void GetAllMessages()
+		{
+			try{
+				mPacket packet = new mPacket(dc.getAllMessages());
+				oos.writeObject(packet);
+				oos.flush();
+				}catch(Exception ex){
+					System.out.println("[Server] GetAllMessage error " +ex);
+				}
+		}
+		/*개인 메시지 응답*/
+		public void SendOpinion(String msg)
+		{
+			try{
+				String[] temp = msg.substring("[SendOpinion]".length()).split("/");
+				//temp[0]에는 Gid 가, temp[1]에는 사용자의견이 들어간다.
+				oos.writeBoolean(dc.sendOpinion(temp[0], temp[1]));
+				oos.flush();
+				}catch(Exception ex){
+					System.out.println("[Server] SendOpinion error " + ex);
+				}
+		}
+		/*단체 시간 요청 및 메시지 발송 메서드*/
+		public void RequestGroupTime()
+		{
+			try{
+				mPacket packet = (mPacket)ois.readObject();
+				oos.writeBoolean(dc.requestGroupTime(packet));
+				oos.flush();
+				
+				}catch(Exception ex){
+					System.out.println("[Server] RequestGourpTime error "+ex );
+				}
+		}
 		/*Loing 메서드*/
 		public void Login(String msg)
 		{
@@ -156,6 +206,7 @@ public class Server extends JFrame{
 			//로그인 성공-> SUCCESS, 실패-> FAIL
 			//비밀번호 불일치-> DISMATCH , 없는 계정-> JOIN
 			String result = dc.Login(this.Id, temp[1]);
+			display.append("로그인 결과 : "+result+" \n");
 			
 			//결과 통보
 			oos.writeUTF(result);
@@ -286,30 +337,6 @@ public class Server extends JFrame{
 				System.out.println("[Server] GetSchedules error  " +ex);
 			}
 		}
-		/*특정 사용자에게 메시지를 통지하는 메서드*/
-		public void NotificationMessage()
-		{
-			try{
-				
-				mPacket packet = (mPacket)ois.readObject();
-				oos.writeBoolean(dc.notificationMessage(packet.getAllPhones(), packet.getMessage()));
-				oos.flush();
-				
-			}catch(Exception ex){
-				System.out.println("[Server] Notification error " + ex);
-			}
-		}
-		/*사용자에게 전달된 메시지를 얻는 메서드*/
-		public void GetMessages()
-		{
-			try{
-				mPacket packet = new mPacket(dc.getAllMessages());
-				oos.writeObject(packet);
-				oos.flush();
-				
-			}catch(Exception ex){
-				System.out.println("[Server] GetMessage error " + ex);}
-		}
 		/*접속 종료*/
 		public void EXIT()
 		{
@@ -323,7 +350,6 @@ public class Server extends JFrame{
 			}
 			this.dc.Disconnection();
 		}
-		
 		
 		
 		

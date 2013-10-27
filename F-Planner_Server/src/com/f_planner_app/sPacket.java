@@ -1,3 +1,4 @@
+package com.f_planner_app;
 import java.io.Serializable;
 
 
@@ -52,12 +53,13 @@ class Schedule implements Serializable
 	public short sDay, eDay;
 	public short sHour, eHour;
 	public short sMinute, eMinute;
+	public int sHMinute, eHMinute;
 	
 	public Schedule()
 	{
 		//Empty
 	}
-	
+	/*스케줄 정보용*/
 	public Schedule(String Title,String sDate, String eDate, String Day , String Place, String Content, char Replay, char Priority)
 	{
 		this.Title = Title;
@@ -68,9 +70,25 @@ class Schedule implements Serializable
 		this.Content = Content;
 		this.Replay = Replay;
 		this.Priority = Priority;
-		this.splitScheduleDate();//날짜 상세 분리
+		splitScheduleDate();//날짜 상세 분리
 	}
-	
+	/*날짜 계산용*/
+	public Schedule(String sDate, String eDate)
+	{
+		this.sDate = sDate;
+		this.eDate = eDate;
+		if(sDate.equals("0") || eDate.equals("0"))
+		zeroSet();
+		else
+		splitScheduleDate();//날짜 분리
+	}
+	public void zeroSet()
+	{
+		this.sMonth = sDay = sHour = sMinute = 0;
+		this.eMonth = eDay = eHour = eMinute = 0;
+		this.sYear = sHMinute = 0;
+		this.eYear = eHMinute = 0;
+	}
 	/*년,월,일,시,분을 구분지음*/
 	public void splitScheduleDate()
 	{
@@ -79,12 +97,14 @@ class Schedule implements Serializable
 		this.sDay = Short.parseShort(sDate.substring(6,8));
 		this.sHour = Short.parseShort(sDate.substring(8,10));
 		this.sMinute = Short.parseShort(sDate.substring(10,12));
+		this.sHMinute = (this.sHour*60 + this.sMinute);
 		
 		this.eYear = Integer.parseInt(eDate.substring(0,4));
 		this.eMonth = Short.parseShort(eDate.substring(4,6));
 		this.eDay = Short.parseShort(eDate.substring(6,8));
 		this.eHour = Short.parseShort(eDate.substring(8,10));
 		this.eMinute = Short.parseShort(eDate.substring(10,12));
+		this.eHMinute = (this.eHour*60 + this.eMinute);
 	}
 }
 
