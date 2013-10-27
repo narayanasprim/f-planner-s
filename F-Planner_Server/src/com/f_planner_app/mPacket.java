@@ -87,6 +87,7 @@ public class mPacket implements Serializable{
 @SuppressWarnings("serial")
 class Message implements Serializable
 {
+	public String Gname;
 	public String leader;
 	public String type;
 	public String content;
@@ -99,9 +100,10 @@ class Message implements Serializable
 		//Empty
 	}
 	
-	public Message(int Gid,String leader ,String content, String type, String decision ,String time)
+	public Message(int Gid,String Gname, String leader ,String content, String type, String decision ,String time)
 	{
 		this.Gid = Gid;
+		this.Gname = Gname;
 		this.leader = leader;
 		this.content = content;
 		this.type = type;

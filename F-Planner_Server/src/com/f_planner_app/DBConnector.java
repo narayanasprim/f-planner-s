@@ -309,8 +309,8 @@ public class DBConnector {
 	/*그룹 생성 및 메시지를 통보*/
 	public boolean requestGroupTime(mPacket packet)
 	{
+		ArrayList<String> phones = packet.getAllPhones();
 		 String Gname = packet.getGname();
-		 ArrayList<String> phones = packet.getAllPhones();
 		 String content = packet.getContent();
 		 String sDate = packet.getSdate();
 		 String eDate = packet.getEdate();
@@ -363,7 +363,7 @@ public class DBConnector {
 			//해당 Gid로 다른 사용자들에게 메시지를 보낸다.
 			for(int i=0; i<idList.size(); i++)
 			{
-				query = "insert into message1202(Receiver,Gid,Leader,Content,Type,Time) values('"+idList.get(i)+"',"+Gid+",'"+this.Id+"','"+content+"','"+type+"',now())";
+				query = "insert into message1202(Receiver,Gid,Leader,Gname,Content,Type,Time) values('"+idList.get(i)+"',"+Gid+",'"+this.Id+"','"+Gname+"','"+content+"','"+type+"',now())";
 				st.executeUpdate(query);
 			}
 			
@@ -470,12 +470,13 @@ public class DBConnector {
 		//4. (UsDate > GsDate && UsDate < GeDate) && UeDate > GeDate (위 걸침)
 		try{	
 				ArrayList<Integer> removeList = new ArrayList<Integer>();
-				Schedule user = groupList.get(groupList.size()-1);//제일 최근에 들어온 것 한개
+				Schedule user = groupList.get(groupList.size()-1);//현재 리스트에서 마지막것.
 	
 				for(int i=0; i<groupList.size()-1; i++)
 				{
 					//날짜가 기존의 그룹정보와 중복되지 않는다면,
 					if(!user.sDate.substring(0,8).equals(groupList.get(i).sDate.substring(0,8))) continue;
+//					if(user.eHMinute<groupList.get(i).sHMinute) break;///sorting 되어있을때, 가능
 					
 					if((user.eHMinute < groupList.get(i).eHMinute) && 
 					(groupList.get(i).sHMinute<=user.eHMinute && user.sHMinute < groupList.get(i).sHMinute))
@@ -526,14 +527,14 @@ public class DBConnector {
 		Message[] message = null;
 		int index = 0;
 		try{
-			query = "select Gid,leader,Content,Type, Decision, Time from message1202 where Receiver='"+this.Id+"'";
+			query = "select Gid, Gname, leader, Content, Type, Decision, Time from message1202 where Receiver='"+this.Id+"'";
 			rs = st.executeQuery(query);
 			rs.last();
 			message = new Message[rs.getRow()];
 			
 			rs.beforeFirst();
 			
-			while(rs.next()) message[index++] = new Message(Integer.parseInt(rs.getString("Gid")),rs.getString("Leader"),rs.getString("Content"),rs.getString("Type"),rs.getString("Decision"),rs.getString("Time")); 
+			while(rs.next()) message[index++] = new Message(Integer.parseInt(rs.getString("Gid")),rs.getString("Gname"),rs.getString("Leader"),rs.getString("Content"),rs.getString("Type"),rs.getString("Decision"),rs.getString("Time")); 
 			
 		}catch(Exception ex){
 			System.out.println("[DBConnector] getAllMessages error " + ex);

@@ -103,8 +103,8 @@ public class Server extends JFrame{
 		{
 			dc = new DBConnector(display);
 			try {
-				oos = new ObjectOutputStream(sock.getOutputStream());
 				ois = new ObjectInputStream(sock.getInputStream());
+				oos = new ObjectOutputStream(sock.getOutputStream());
 				if(dc.DBConnection(con)) display.append("DB 연결 성공!\n");
 			} catch (IOException e) {
 				System.out.println("[Server->ClientRequest] Object create error " + e);
@@ -211,6 +211,9 @@ public class Server extends JFrame{
 			//결과 통보
 			oos.writeUTF(result);
 			oos.flush();
+			
+			if(null == ois || null == oos)
+				display.append("서버 연결 끊김..\n");
 			
 			if("SUCCESS".equals(result))///결과가 성공일때만,
 			{	
@@ -347,11 +350,10 @@ public class Server extends JFrame{
 					hm.remove(this.Id);
 				}
 				display.append(this.Id + " 접속 종료\n");
+				display.append("현재 접속 인원 : " + hm.size()+"\n");
 			}
 			this.dc.Disconnection();
 		}
-		
-		
 		
 	}//end of ClientRequest Thread
 	

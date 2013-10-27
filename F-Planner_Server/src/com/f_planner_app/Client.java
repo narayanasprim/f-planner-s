@@ -21,6 +21,7 @@ public class Client {
 	{
 		System.out.println("그룹번호 : " + m.Gid);
 		System.out.println("리더 : " + m.leader);
+		System.out.println("그룹이름 : " + m.Gname);
 		System.out.println("내용 : " + m.content);
 		System.out.println("타입 : " + m.type);
 		System.out.println("현재 결정 : " + m.decision);
@@ -91,13 +92,13 @@ public class Client {
 		if(sc.connectServer()) System.out.println("서버 접속 성공");
 
 			
-			//Hojin();
+//			Hojin();
 
-			//Kimoon();
+//			Kimoon();
 
-			Dawoon();
+//			Dawoon();
 		
-			//Youngjoon();
+			Youngjoon();
 		
 		
 		
