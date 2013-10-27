@@ -33,9 +33,6 @@ public class gPacket implements Serializable{
 @SuppressWarnings("serial")
 class Group implements Serializable
 {
-	public static final String ACCEPT="ACCEPT";
-	public static final String REJECT="REJECT";
-	
 	public int Gid;
 	public String Leader;
 	public String Gname;

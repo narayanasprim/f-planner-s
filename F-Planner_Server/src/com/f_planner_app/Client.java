@@ -82,7 +82,7 @@ public class Client {
 		
 		System.out.println("----------------------------");
 		//첫번째 메시지 승낙!
-		boolean result = sc.sendOpinion(message[0].Gid, Group.ACCEPT);
+		boolean result = sc.sendOpinion(message[0].Gid, Message.ACCEPT);
 		System.out.println("메시지 결과 " + result);
 	}
 	

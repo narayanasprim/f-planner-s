@@ -87,6 +87,11 @@ public class mPacket implements Serializable{
 @SuppressWarnings("serial")
 class Message implements Serializable
 {
+	public static final String ACCEPT="ACCEPT";
+	public static final String REJECT="REJECT";
+	public static final String REQUEST="REQUEST";
+	public static final String NOT_DECISION="NOT_DECISION";
+	
 	public String Gname;
 	public String leader;
 	public String type;
