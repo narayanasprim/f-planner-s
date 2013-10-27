@@ -1,6 +1,9 @@
+package com.f_planner_app;
 import java.util.ArrayList;
 
 public class Client {
+	
+	public static SVConnector sc = new SVConnector(); 
 	
 	public static void printSchedule(Schedule sch)
 	{
@@ -38,47 +41,70 @@ public class Client {
 		System.out.println("그룹 생성시간 : " + g.DATE);
 	}
 	
+	public static void Hojin()
+	{
+		System.out.println("로그인 시도-> "+sc.Login("h", "h"));//로그인
+		ArrayList<String> ph = new ArrayList<String>();
+		ph.add("01063360267");//다운
+		ph.add("01012341234");//기문
+		ph.add("01012345678");//영준
+		
+		boolean result = sc.requestGroupTime("새로운그룹", ph, "오늘 모이자", "201310130500", "201310132400", "120", "REQUEST");
+		System.out.println("요청 결과 : " + result);
+	}
+	
+	public static void Dawoon()
+	{
+		System.out.println("로그인 시도-> "+sc.Login("d", "d"));//로그인
+		checkMessage();
+	}
+	
+	public static void Kimoon()
+	{
+		System.out.println("로그인 시도-> "+sc.Login("k", "k"));//로그인
+		checkMessage();
+	}
+	
+	public static void Youngjoon()
+	{
+		System.out.println("로그인 시도-> "+sc.Login("y", "y"));
+		checkMessage();
+	}
+	
+	public static void checkMessage()
+	{
+		System.out.println("메시지 확인 ↓--------------- ");
+		Message[] message = sc.getAllMessages();
+		for(Message m : message)
+		printMessage(m);
+		
+		
+		System.out.println("----------------------------");
+		//첫번째 메시지 승낙!
+		boolean result = sc.sendOpinion(message[0].Gid, Group.ACCEPT);
+		System.out.println("메시지 결과 " + result);
+	}
+	
 	public static void main(String[] args) {
 		try {
 			
-			SVConnector sc = new SVConnector();
-			if(sc.connectServer()) System.out.println("서버 접속 성공");
-//			System.out.println("로그인 시도-> "+sc.Login("호진", "a"));//로그인
-//			System.out.println("로그인 시도-> "+sc.Login("다운", "b"));//로그인
-//			System.out.println("로그인 시도-> "+sc.Login("기문", "c"));//로그인
-			System.out.println("로그인 시도-> "+sc.Login("영준", "d"));
-			/*
-			ArrayList<String> ph = new ArrayList<String>();
-			ph.add("01063360267");//다운
-			ph.add("01012341234");//기문
-			ph.add("01012345678");//영준
+		if(sc.connectServer()) System.out.println("서버 접속 성공");
+
 			
-			boolean result = sc.requestGroupTime("새로운그룹", ph, "오늘 모이자", "201310150500", "201310150900", "120", "REQUEST");
-			System.out.println("요청 결과 : " + result);
-			*/
-			
-			System.out.println("메시지 확인 ↓--------------- ");
-			Message[] message = sc.getAllMessages();
-			for(Message m : message)
-			printMessage(m);
-			
-			Thread.sleep(4000);
-			
-			System.out.println("----------------------------");
-			//첫번째 메시지 승낙!
-			boolean result = sc.sendOpinion(message[0].Gid, "ACCEPT");
-			System.out.println("메시지 결과 " + result);
-			
-			
-			
+			//Hojin();
+
+			//Kimoon();
+
+			Dawoon();
+		
+			//Youngjoon();
+		
+		
+		
 //			System.out.println("그룹 정보 확인 ↓ ");
 //			Group[] group = sc.getAllGroupInfo();
 //			for(Group g : group)
 //			printGroupInfo(g);
-			
-
-			
-	
 			
 
 //			Schedule[] schedule = sc.getSchedules();
