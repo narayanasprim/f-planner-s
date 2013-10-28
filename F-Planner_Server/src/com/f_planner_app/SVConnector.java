@@ -259,12 +259,12 @@ public class SVConnector{
 		return result;
 	}
 	/*사용자가 다른사용자의 요청에 대한 의견을 냄*/
-	public boolean sendOpinion(int Gid, String opinion)
+	public boolean sendOpinion(int Gid, String opinion, String time)
 	{
 		boolean result = false;
 		try{
 			
-			oos.writeUTF("[SendOpinion]"+Gid+"/"+opinion);
+			oos.writeUTF("[SendOpinion]"+Gid+"/"+opinion+"/"+time);
 			oos.flush();
 			////////결과를 기다림
 			result = ois.readBoolean();

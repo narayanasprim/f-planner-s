@@ -377,7 +377,7 @@ public class DBConnector {
 	
 	}
 	/*사용자 의견 적용*/
-	public boolean sendOpinion(String Gid, String opinion)
+	public boolean sendOpinion(String Gid, String opinion, String time)
 	{
 		boolean result = false;
 		
@@ -390,7 +390,8 @@ public class DBConnector {
 				MergeSchedule(Gid);
 			}
 			
-			query = "update message1202 set Decision='"+opinion+"' where Receiver='"+this.Id+"' and Gid ="+Gid+" and Type='REQUEST'";
+			//메시지 테이블 업데이트
+			query = "update message1202 set Decision='"+opinion+"' where Receiver='"+this.Id+"' and Gid ="+Gid+" and Time='"+time+"'";
 			st.executeUpdate(query);
 			
 			result = true;

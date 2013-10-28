@@ -175,8 +175,8 @@ public class Server extends JFrame{
 		{
 			try{
 				String[] temp = msg.substring("[SendOpinion]".length()).split("/");
-				//temp[0]에는 Gid 가, temp[1]에는 사용자의견이 들어간다.
-				oos.writeBoolean(dc.sendOpinion(temp[0], temp[1]));
+				//temp[0]에는 Gid 가, temp[1]에는 사용자의견, temp[2]에는 시간이 들어간다.
+				oos.writeBoolean(dc.sendOpinion(temp[0], temp[1], temp[2]));
 				oos.flush();
 				}catch(Exception ex){
 					System.out.println("[Server] SendOpinion error " + ex);
