@@ -15,7 +15,6 @@ public class DBConnector {
 	ResultSet rs = null;
 	String query = null;
 	String Id = null;
-	//int Unum;
 	String[] fail = {"FAIL"};
 	Schedule[] schedules;
 	Schedule schedule;
@@ -67,7 +66,6 @@ public class DBConnector {
 			else//접속 성공
 			{
 				this.Id = id;
-//				this.Unum = Integer.parseInt(rs.getString(1));//사용자 번호
 				this.isLogin = true;
 			}
 
@@ -549,18 +547,22 @@ public class DBConnector {
 		Group[] group = null;
 		String[] groupNum = null;
 		try{
-			
+			display.append(this.Id+" 가 그룹정보를 요청\n");
 			query = "select Groups from userinfo1202 where Id='"+this.Id+"'";
-			rs = st.executeQuery(query); rs.next();
-			groupNum = rs.getString("Groups").split("/");
+			rs = st.executeQuery(query); rs.first();
 			
-			group = new Group[groupNum.length];
-			
-			for(int i=0; i<groupNum.length; i++)
+			if(!rs.getString("Groups").equals("")) 
 			{
-				query = "select * from findtime1202 where Gid="+groupNum[i];
-				rs = st.executeQuery(query); rs.next();
-				group[i] = new Group(Integer.parseInt(rs.getString("Gid")),rs.getString("Leader"),rs.getString("Gname"),rs.getString("People"),Integer.parseInt(rs.getString("Pcount")),rs.getString("Content"),rs.getString("sDate"),rs.getString("eDate"),Integer.parseInt(rs.getString("aTime")),rs.getString("DATE"));
+				groupNum = rs.getString("Groups").split("/");
+				
+				group = new Group[groupNum.length];
+	
+				for(int i=0; i<groupNum.length; i++)
+				{
+					query = "select * from findtime1202 where Gid="+groupNum[i];
+					rs = st.executeQuery(query); rs.next();
+					group[i] = new Group(Integer.parseInt(rs.getString("Gid")),rs.getString("Leader"),rs.getString("Gname"),rs.getString("People"),Integer.parseInt(rs.getString("Pcount")),rs.getString("Content"),rs.getString("sDate"),rs.getString("eDate"),Integer.parseInt(rs.getString("aTime")),rs.getString("DATE"));
+				}
 			}
 			
 		}catch(Exception ex){
