@@ -21,7 +21,7 @@ public class Client {
 	{
 		System.out.println("그룹번호 : " + m.Gid);
 		System.out.println("리더 : " + m.leader);
-		System.out.println("그룹이름 : " + m.Gname);
+		System.out.println("제목 : " + m.title);
 		System.out.println("내용 : " + m.content);
 		System.out.println("타입 : " + m.type);
 		System.out.println("현재 결정 : " + m.decision);
@@ -70,6 +70,15 @@ public class Client {
 	{
 		System.out.println("로그인 시도-> "+sc.Login("y", "y"));
 		checkMessage();
+		System.out.println("----------------");
+		
+		ArrayList<String> ph = new ArrayList<String>();
+		ph.add("01055954945");
+		ph.add("01012341234");
+		ph.add("01063360267");
+		
+		sc.sendMessage(ph, "send제목", "send내용");
+		
 	}
 	
 	public static void checkMessage()
@@ -99,6 +108,8 @@ public class Client {
 //			Dawoon();
 		
 			Youngjoon();
+		
+		
 		
 		
 		

@@ -1,5 +1,6 @@
 package com.f_planner_app;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -12,6 +13,7 @@ public class DBConnector {
 	
 	Connection con = null;
 	Statement st = null;
+	PreparedStatement pst = null;//통지 메시지 전송용
 	ResultSet rs = null;
 	String query = null;
 	String Id = null;
@@ -29,6 +31,7 @@ public class DBConnector {
 		try {
 			this.con = c;
 			st = con.createStatement();
+			pst = con.prepareStatement("insert into message1202(Receiver,Title,Leader,Content,Type,Time) values(?,?,?,?,'NOTIFY',now())");
 			return true;
 		} catch (SQLException e) {
 			return false;
@@ -308,7 +311,7 @@ public class DBConnector {
 	public boolean requestGroupTime(mPacket packet)
 	{
 		ArrayList<String> phones = packet.getAllPhones();
-		 String Gname = packet.getGname();
+		 String title = packet.getTitle();
 		 String content = packet.getContent();
 		 String sDate = packet.getSdate();
 		 String eDate = packet.getEdate();
@@ -317,6 +320,7 @@ public class DBConnector {
 		 boolean result = false;
 		 String names = "",Gid = "";
 		 ArrayList<String> idList = new ArrayList<String>();
+		
 		 try{
 			 
 			 //리스트에서 번호를 얻어 해당 번호의 이름을 얻는다.
@@ -324,8 +328,7 @@ public class DBConnector {
 			 {
 				 try{
 				 query = "select Id,Name from userinfo1202 where Phone='"+phones.get(i)+"'";
-				 rs = st.executeQuery(query);
-				 rs.next();
+				 rs = st.executeQuery(query); rs.next();
 				 names += rs.getString("Name")+",";
 				 idList.add(rs.getString("Id"));
 				 }catch(Exception ex){}
@@ -335,7 +338,7 @@ public class DBConnector {
 			//findtime 테이블에 정보를 만든다.
 			 try{
 			 query = "insert into findtime1202(Leader,Gname,People,Pcount,Content,sDate,eDate,aTime,DATE) " +
-					"values('"+this.Id+"','"+Gname+"','"+names+"',"+(idList.size()+1)+",'"+content+"','"+sDate+"','"+eDate+"','"+aTime+"',now())";
+					"values('"+this.Id+"','"+title+"','"+names+"',"+(idList.size()+1)+",'"+content+"','"+sDate+"','"+eDate+"','"+aTime+"',now())";
 			 st.executeUpdate(query);
 			 }catch(Exception ex){System.out.println("[DBConnector] requestGroupTime->insert findtime");}
 			
@@ -361,7 +364,7 @@ public class DBConnector {
 			//해당 Gid로 다른 사용자들에게 메시지를 보낸다.
 			for(int i=0; i<idList.size(); i++)
 			{
-				query = "insert into message1202(Receiver,Gid,Leader,Gname,Content,Type,Time) values('"+idList.get(i)+"',"+Gid+",'"+this.Id+"','"+Gname+"','"+content+"','"+type+"',now())";
+				query = "insert into message1202(Receiver,Gid,Leader,Title,Content,Type,Time) values('"+idList.get(i)+"',"+Gid+",'"+this.Id+"','"+title+"','"+content+"','"+type+"',now())";
 				st.executeUpdate(query);
 			}
 			
@@ -526,14 +529,14 @@ public class DBConnector {
 		Message[] message = null;
 		int index = 0;
 		try{
-			query = "select Gid, Gname, leader, Content, Type, Decision, Time from message1202 where Receiver='"+this.Id+"'";
+			query = "select Gid, Title, Leader, Content, Type, Decision, Time from message1202 where Receiver='"+this.Id+"' order by Time desc";
 			rs = st.executeQuery(query);
 			rs.last();
 			message = new Message[rs.getRow()];
 			
 			rs.beforeFirst();
 			
-			while(rs.next()) message[index++] = new Message(Integer.parseInt(rs.getString("Gid")),rs.getString("Gname"),rs.getString("Leader"),rs.getString("Content"),rs.getString("Type"),rs.getString("Decision"),rs.getString("Time")); 
+			while(rs.next()) message[index++] = new Message(rs.getString("Gid"),rs.getString("Title"),rs.getString("Leader"),rs.getString("Content"),rs.getString("Type"),rs.getString("Decision"),rs.getString("Time")); 
 			
 		}catch(Exception ex){
 			System.out.println("[DBConnector] getAllMessages error " + ex);
@@ -571,6 +574,45 @@ public class DBConnector {
 		
 		return group;
 	}
-	
+	/*일반 메시지 보내는 메서드*/
+	public boolean sendMessage(mPacket packet)
+	{
+		boolean result = false;
+		ArrayList<String> phones = packet.getAllPhones();
+		String title = packet.getTitle();
+		String content  = packet.getContent();
+		ArrayList<String> idList = new ArrayList<String>();
+		int i = 0;
+		
+		try{
+			//핸드폰번호를 기반으로 사용자의 아이디 존재 여부를 판단. 해당되는 경우 리스트에 저장한다.
+			for(i=0; i<phones.size(); i++)
+			{
+				try{
+					query = "select Id from userinfo1202 where Phone ='"+phones.get(i)+"'";
+					rs = st.executeQuery(query); rs.first();
+					idList.add(rs.getString("Id"));
+				}catch(Exception e){}
+			}
+			
+			for(i=0; i<idList.size(); i++)
+			{
+				try{
+					pst.setString(1, idList.get(i));
+					pst.setString(2, title);
+					pst.setString(3, this.Id);
+					pst.setString(4, content);
+					
+					pst.executeUpdate();
+				}catch(Exception ex){}
+			}
+			
+			result = true;
+		}catch(Exception ex){
+			System.out.println("[DBConnector] sendMessage error " + ex);
+		}
+		
+		return result;
+	}
 	
 }

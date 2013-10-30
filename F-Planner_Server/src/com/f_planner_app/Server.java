@@ -119,18 +119,16 @@ public class Server extends JFrame{
 				while((msg = ois.readUTF()) !=null)
 				{
 					if(msg.indexOf("[Login]") != -1) Login(msg);
-					else if(msg.indexOf("[GetAllGroupInfo]") != -1)
+					
+					else if(msg.indexOf("[SendMessage]") != -1)
 					{
-						try{
-							
-							gPacket packet = new gPacket(dc.getAllGroupInfo());
-							oos.writeObject(packet);
-							oos.flush();
-							
-						}catch(Exception ex){
-							System.out.println("[Server] GetAllGroupInfo error " + ex);
-						}
+						mPacket packet = (mPacket)ois.readObject();
+						
+						oos.writeBoolean(dc.sendMessage(packet));
+						oos.flush();
 					}
+					
+					else if(msg.indexOf("[GetAllGroupInfo]") != -1) GetAllGroupInfo();
 					else if(msg.indexOf("[GetAllMessages]") != -1) GetAllMessages();
 					else if(msg.indexOf("[SendOpinion]") != -1) SendOpinion(msg);
 					else if(msg.indexOf("[RequestGroupTime]") != -1) RequestGroupTime();
@@ -159,6 +157,19 @@ public class Server extends JFrame{
 				}catch(Exception e){}
 			}
 		}//end of run
+		/*사용자가 포함된 모든 그룹 정보를 얻음*/
+		public void GetAllGroupInfo()
+		{
+			try{
+				
+				gPacket packet = new gPacket(dc.getAllGroupInfo());
+				oos.writeObject(packet);
+				oos.flush();
+				
+			}catch(Exception ex){
+				System.out.println("[Server] GetAllGroupInfo error " + ex);
+			}
+		}
 		/*사용자에게 전송된 모든 메시지를 받음*/
 		public void GetAllMessages()
 		{
