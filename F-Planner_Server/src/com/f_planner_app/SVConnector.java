@@ -297,7 +297,7 @@ public class SVConnector{
 						oos.flush();
 						
 						mPacket packet = (mPacket)ois.readObject();
-						this.messages = packet.getAllMessage();
+						this.messages = packet.getAllMessages();
 						
 						
 					}catch(Exception ex){
@@ -340,4 +340,27 @@ public class SVConnector{
 		
 		return group;
 	}
+	/*상대방에게 메시지를 보냄*/
+	public boolean sendMessage(ArrayList<String> phones, String title, String msg)
+	{
+		boolean result = false;
+		
+		try{
+			
+			oos.writeUTF("[SendMessage]");
+			oos.flush();
+			
+			oos.writeObject(new mPacket(phones,title,msg));
+			oos.flush();
+			
+			result = ois.readBoolean();
+			
+		}catch(Exception ex){
+			System.out.println("[SVConnector] sendMessage error " + ex);
+		}
+		
+		
+		return result;
+	}
+	
 }

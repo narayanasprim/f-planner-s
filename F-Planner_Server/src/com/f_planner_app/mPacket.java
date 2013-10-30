@@ -10,13 +10,13 @@ public class mPacket implements Serializable{
 	private ArrayList<String> phones;
 	private String type;
 	private String eDate, sDate, aTime;
-	private String Gname;
+	private String title;
 	/*단순 메시지*/
 	private Message[] message;
 	/*FindfreeTime 전용 메시지 생성자*/
-	public mPacket(String Gname, ArrayList<String> ph, String content, String sDate, String eDate,String aTime, String type)
+	public mPacket(String title, ArrayList<String> ph, String content, String sDate, String eDate,String aTime, String type)
 	{
-		this.Gname = Gname;
+		this.title = title;
 		this.phones = ph;
 		this.content = content;
 		this.sDate = sDate;
@@ -25,10 +25,11 @@ public class mPacket implements Serializable{
 		this.type = type;
 	}
 	/*단순전달 단일 메시지 생성자*/
-	public mPacket(Message m)
+	public mPacket(ArrayList<String> ph, String title, String content)
 	{
-		this.message = new Message[1];
-		this.message[0] = m;
+		this.title = title;
+		this.phones = ph;
+		this.content = content;
 	}
 	/*단순전달 다중 메시지 생성자*/
 	public mPacket(Message[] mm)
@@ -61,10 +62,10 @@ public class mPacket implements Serializable{
 	{
 		return this.aTime;
 	}
-	/*그룹명(Gname)을 얻음*/
-	public String getGname()
+	/*메시지 제목을 얻음*/
+	public String getTitle()
 	{
-		return this.Gname;
+		return this.title;
 	}
 	/*메시지 내용을 얻음*/
 	public String getContent()
@@ -78,7 +79,7 @@ public class mPacket implements Serializable{
 		return this.message[0];
 	}
 	/*모든 메시지를 받음*/
-	public Message[] getAllMessage()
+	public Message[] getAllMessages()
 	{
 		return this.message;
 	}
@@ -91,8 +92,9 @@ class Message implements Serializable
 	public static final String REJECT="REJECT";
 	public static final String REQUEST="REQUEST";
 	public static final String NOT_DECISION="NOT_DECISION";
+	public static final String NOTIFY = "NOTIFY";
 	
-	public String Gname;
+	public String title;
 	public String leader;
 	public String type;
 	public String content;
@@ -105,10 +107,11 @@ class Message implements Serializable
 		//Empty
 	}
 	
-	public Message(int Gid,String Gname, String leader ,String content, String type, String decision ,String time)
+	public Message(String Gid,String title, String leader ,String content, String type, String decision ,String time)
 	{
-		this.Gid = Gid;
-		this.Gname = Gname;
+		if(null == Gid) this.Gid = -1;
+		else			this.Gid = Integer.parseInt(Gid);
+		this.title = title;
 		this.leader = leader;
 		this.content = content;
 		this.type = type;
