@@ -94,6 +94,7 @@ class Message implements Serializable
 	public static final String NOT_DECISION="NOT_DECISION";
 	public static final String NOTIFY = "NOTIFY";
 	
+	
 	public String title;
 	public String leader;
 	public String type;
@@ -101,16 +102,21 @@ class Message implements Serializable
 	public String time;
 	public String decision;
 	public int Gid;
+	public int Uid;//메시지 고유 번호
 	
 	public Message()
 	{
 		//Empty
 	}
 	
-	public Message(String Gid,String title, String leader ,String content, String type, String decision ,String time)
+	public Message(String Uid, String Gid,String title, String leader ,String content, String type, String decision ,String time)
 	{
 		if(null == Gid) this.Gid = -1;
 		else			this.Gid = Integer.parseInt(Gid);
+		
+		if(null == Uid) this.Uid = -1;
+		else			this.Uid = Integer.parseInt(Uid);
+		
 		this.title = title;
 		this.leader = leader;
 		this.content = content;
