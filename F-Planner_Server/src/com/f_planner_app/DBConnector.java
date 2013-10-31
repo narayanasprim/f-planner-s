@@ -309,7 +309,7 @@ public class DBConnector {
 	/*그룹 생성 및 메시지를 통보*/
 	public boolean requestGroupTime(mPacket packet)
 	{
-		ArrayList<String> phones = packet.getAllPhones();
+		ArrayList<String> phones = packet.getList();
 		 String title = packet.getTitle();
 		 String content = packet.getContent();
 		 String sDate = packet.getSdate();
@@ -586,7 +586,7 @@ public class DBConnector {
 	public boolean sendMessage(mPacket packet)
 	{
 		boolean result = false;
-		ArrayList<String> phones = packet.getAllPhones();
+		ArrayList<String> phones = packet.getList();
 		String title = packet.getTitle();
 		String content  = packet.getContent();
 		ArrayList<String> idList = new ArrayList<String>();
@@ -622,5 +622,25 @@ public class DBConnector {
 		
 		return result;
 	}
-	
+	/*메시지를 삭제하는 메서드*/
+	public boolean deleteMessage(ArrayList<String> deleteList)
+	{
+		boolean result = false;
+		
+		try{
+			
+			for(int i=0; i<deleteList.size(); i++)
+			{
+				query = "delete from message1202 where Unum="+deleteList.get(i);
+				st.executeUpdate(query);
+			}
+			
+			result = true;
+			
+		}catch(Exception ex){
+			System.out.println("[DBConnector] deleteMessage error " + ex);
+		}
+		
+		return result;
+	}
 }

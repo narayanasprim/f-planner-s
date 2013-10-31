@@ -119,15 +119,8 @@ public class Server extends JFrame{
 				while((msg = ois.readUTF()) !=null)
 				{
 					if(msg.indexOf("[Login]") != -1) Login(msg);
-					
-					else if(msg.indexOf("[SendMessage]") != -1)
-					{
-						mPacket packet = (mPacket)ois.readObject();
-						
-						oos.writeBoolean(dc.sendMessage(packet));
-						oos.flush();
-					}
-					
+					else if(msg.indexOf("[DeleteMessage]") != -1) DeleteMessage();
+					else if(msg.indexOf("[SendMessage]") != -1) SendMessage();
 					else if(msg.indexOf("[GetAllGroupInfo]") != -1) GetAllGroupInfo();
 					else if(msg.indexOf("[GetAllMessages]") != -1) GetAllMessages();
 					else if(msg.indexOf("[SendOpinion]") != -1) SendOpinion(msg);
@@ -157,6 +150,33 @@ public class Server extends JFrame{
 				}catch(Exception e){}
 			}
 		}//end of run
+		/*메시지를 지움*/
+		public void DeleteMessage()
+		{
+			try{
+				display.append(this.Id+ " 가 메시지를 삭제\n");
+				mPacket packet = (mPacket)ois.readObject();
+				oos.writeBoolean(dc.deleteMessage(packet.getList()));
+				oos.flush();
+				
+			}catch(Exception ex){
+				System.out.println("[Server] DeleteMessage error " + ex);
+			}
+		}
+		/*메시지를 보냄*/
+		public void SendMessage()
+		{
+			try{
+				
+				mPacket packet = (mPacket)ois.readObject();
+				
+				oos.writeBoolean(dc.sendMessage(packet));
+				oos.flush();
+				
+			}catch(Exception ex){
+				System.out.println("[Server] SendMessage error " + ex);
+			}
+		}
 		/*사용자가 포함된 모든 그룹 정보를 얻음*/
 		public void GetAllGroupInfo()
 		{
