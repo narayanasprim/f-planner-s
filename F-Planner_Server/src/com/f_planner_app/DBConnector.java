@@ -60,12 +60,12 @@ public class DBConnector {
 		else
 		{
 			try{
-			query = "select Unum,Id,Pw from userinfo1202 where Id='"+id+"'";
+			query = "select Id,Pw from userinfo1202 where Id='"+id+"'";
 			rs = st.executeQuery(query);
 			rs.next();
 			//첫번째 필드 : 아이디 두번째 필드 : 비밀번호
 			//비교
-			if(!rs.getString(3).equals(passwd)) result = "DISMATCH";				
+			if(!rs.getString("Pw").equals(passwd)) result = "DISMATCH";				
 			else//접속 성공
 			{
 				this.Id = id;
@@ -86,10 +86,9 @@ public class DBConnector {
 		boolean result = true;
 		
 		try{
-			query = "select Unum from userinfo1202 where Id = '"+id+"'";
+			query = "select Id from userinfo1202 where Id = '"+id+"'";
 			rs = st.executeQuery(query);
-			rs.next();
-			if(null == rs.getString("Unum")) result = false;
+			rs.first();
 			
 		}catch(SQLException ex){
 			System.out.println("[DBConnector] checkID error " + ex);
@@ -323,13 +322,13 @@ public class DBConnector {
 		
 		 try{
 			 
-			 //리스트에서 번호를 얻어 해당 번호의 이름을 얻는다.
+			 //리스트에서 번호를 얻어 해당 번호의 아이디를 얻는다.
 			 for(int i=0; i<phones.size(); i++)
 			 {
 				 try{
-				 query = "select Id,Name from userinfo1202 where Phone='"+phones.get(i)+"'";
+				 query = "select Id from userinfo1202 where Phone='"+phones.get(i)+"'";
 				 rs = st.executeQuery(query); rs.next();
-				 names += rs.getString("Name")+",";
+				 names += rs.getString("Id")+",";
 				 idList.add(rs.getString("Id"));
 				 }catch(Exception ex){}
 			 }
@@ -344,14 +343,13 @@ public class DBConnector {
 			
 			//가장 최근에 생성한 그룹의 Gid를 가져온다.
 			try{
-				query = "select Gid from findtime1202 where Leader = '"+this.Id+"' order by DATE desc limit 1";
-				rs = st.executeQuery(query);
-				rs.next();
-				Gid = rs.getString("Gid");
+				query = "select LAST_INSERT_ID() from findtime1202 where Leader = '"+this.Id+"'";
+				rs = st.executeQuery(query); rs.first();
+				Gid = rs.getString(1);
 			}catch(Exception ex){System.out.println("[DBConnector] requestGroupTime->get Gid");}
 			
 			 //자신의 그룹 컬럼 정보를 업데이트 한다.
-			 query = "update userinfo1202 set Groups=concat(Groups,'"+Gid+"/') where Id='"+this.Id+"'";
+			 query = "insert into group1202 values('"+this.Id+"',"+Gid+")";
 			 st.executeUpdate(query);
 			
 			//groupSchedule을 만든다.
@@ -364,7 +362,7 @@ public class DBConnector {
 			//해당 Gid로 다른 사용자들에게 메시지를 보낸다.
 			for(int i=0; i<idList.size(); i++)
 			{
-				query = "insert into message1202(Receiver,Gid,Leader,Title,Content,Type,Time) values('"+idList.get(i)+"',"+Gid+",'"+this.Id+"','"+title+"','"+content+"','"+type+"',now())";
+				query = "insert into message1202(Receiver,Gid,Title,Leader,Content,Type,Time) values('"+idList.get(i)+"',"+Gid+",'"+title+"','"+this.Id+"','"+content+"','"+type+"',now())";
 				st.executeUpdate(query);
 			}
 			
@@ -378,21 +376,21 @@ public class DBConnector {
 	
 	}
 	/*사용자 의견 적용*/
-	public boolean sendOpinion(String Gid, String opinion, String time)
+	public boolean sendOpinion(String Gid, String opinion)
 	{
 		boolean result = false;
 		
 		try{
 			if(opinion.equals("ACCEPT"))
 			{
-				query = "update userinfo1202 set Groups=concat(Groups,'"+Gid+"/') where Id='"+this.Id+"'";
+				query = "insert into group1202 values('"+this.Id+"',"+Gid+")";
 				st.executeUpdate(query);
 				//여기서 GroupSchedule 과 Merge 가 수행되어야 한다.
 				MergeSchedule(Gid);
 			}
 			
 			//메시지 테이블 업데이트
-			query = "update message1202 set Decision='"+opinion+"' where Receiver='"+this.Id+"' and Gid ="+Gid+" and Time='"+time+"'";
+			query = "update message1202 set Decision='"+opinion+"' where Receiver='"+this.Id+"' and Gid ="+Gid+" and Type='REQUEST'";
 			st.executeUpdate(query);
 			
 			result = true;
@@ -529,14 +527,17 @@ public class DBConnector {
 		Message[] message = null;
 		int index = 0;
 		try{
-			query = "select Gid, Title, Leader, Content, Type, Decision, Time from message1202 where Receiver='"+this.Id+"' order by Time desc";
+			query = "select * from message1202 where Receiver='"+this.Id+"' order by Time desc";
 			rs = st.executeQuery(query);
-			rs.last();
+			
+			if(!rs.next()) return message;
+			else rs.last();
+			
 			message = new Message[rs.getRow()];
 			
 			rs.beforeFirst();
 			
-			while(rs.next()) message[index++] = new Message(rs.getString("Gid"),rs.getString("Title"),rs.getString("Leader"),rs.getString("Content"),rs.getString("Type"),rs.getString("Decision"),rs.getString("Time")); 
+			while(rs.next()) message[index++] = new Message(rs.getString("Unum"),rs.getString("Gid"),rs.getString("Title"),rs.getString("Leader"),rs.getString("Content"),rs.getString("Type"),rs.getString("Decision"),rs.getString("Time")); 
 			
 		}catch(Exception ex){
 			System.out.println("[DBConnector] getAllMessages error " + ex);
@@ -549,18 +550,25 @@ public class DBConnector {
 	{
 		Group[] group = null;
 		String[] groupNum = null;
+		int i=0;
+
 		try{
 			display.append(this.Id+" 가 그룹정보를 요청\n");
-			query = "select Groups from userinfo1202 where Id='"+this.Id+"'";
-			rs = st.executeQuery(query); rs.first();
+			query = "select Groupnum from group1202 where Id='"+this.Id+"'";
 			
-			if(!rs.getString("Groups").equals("")) 
-			{
-				groupNum = rs.getString("Groups").split("/");
-				
+			rs = st.executeQuery(query); 
+			
+			if(!rs.next()) return group;
+			else rs.last();
+						
+			{//사용자가 속해 있는 그룹번호를 배열에 저장. 차례대로 그룹정보를 얻어 Group 객체를 생성
+				groupNum = new String[rs.getRow()];
 				group = new Group[groupNum.length];
-	
-				for(int i=0; i<groupNum.length; i++)
+				
+				rs.beforeFirst();
+				while(rs.next()) groupNum[i++] = rs.getString("Groupnum");
+				
+				for( i=0; i<groupNum.length; i++)
 				{
 					query = "select * from findtime1202 where Gid="+groupNum[i];
 					rs = st.executeQuery(query); rs.next();
