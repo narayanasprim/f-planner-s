@@ -362,5 +362,24 @@ public class SVConnector{
 		
 		return result;
 	}
-	
+	/*선택된 메시지를 삭제함*/
+	public boolean deleteMessage(ArrayList<String> deleteList)
+	{
+		boolean result = false;
+		try{
+			
+			oos.writeUTF("[DeleteMessage]");
+			oos.flush();
+			
+			oos.writeObject(new mPacket(deleteList));
+			oos.flush();
+			
+			result  = ois.readBoolean();
+			
+		}catch(Exception ex){
+			System.out.println("[SVConnector] deleteMessage error " + ex );
+		}
+		
+		return result;
+	}
 }

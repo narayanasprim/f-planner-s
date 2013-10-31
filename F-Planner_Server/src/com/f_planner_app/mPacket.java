@@ -7,7 +7,7 @@ public class mPacket implements Serializable{
 	private static final long serialVersionUID = 1L;
 	/*그룹전용*/
 	private String content;
-	private ArrayList<String> phones;
+	private ArrayList<String> list;
 	private String type;
 	private String eDate, sDate, aTime;
 	private String title;
@@ -17,7 +17,7 @@ public class mPacket implements Serializable{
 	public mPacket(String title, ArrayList<String> ph, String content, String sDate, String eDate,String aTime, String type)
 	{
 		this.title = title;
-		this.phones = ph;
+		this.list = ph;
 		this.content = content;
 		this.sDate = sDate;
 		this.eDate = eDate;
@@ -28,7 +28,7 @@ public class mPacket implements Serializable{
 	public mPacket(ArrayList<String> ph, String title, String content)
 	{
 		this.title = title;
-		this.phones = ph;
+		this.list = ph;
 		this.content = content;
 	}
 	/*단순전달 다중 메시지 생성자*/
@@ -36,11 +36,16 @@ public class mPacket implements Serializable{
 	{
 		this.message = mm;
 	}
+	/*삭제 리스트*/
+	public mPacket(ArrayList<String> del)
+	{
+		this.list = del;
+	}
 	//------------------------------//
 	/*번호 리스트를 반환*/
-	public ArrayList<String> getAllPhones()
+	public ArrayList<String> getList()
 	{
-		return this.phones;
+		return this.list;
 	}
 	/*메시지 타입을 얻음*/
 	public String getMessageType()
@@ -101,22 +106,20 @@ class Message implements Serializable
 	public String content;
 	public String time;
 	public String decision;
+	public String Unum;//메시지 고유 번호
 	public int Gid;
-	public int Uid;//메시지 고유 번호
 	
 	public Message()
 	{
 		//Empty
 	}
 	
-	public Message(String Uid, String Gid,String title, String leader ,String content, String type, String decision ,String time)
+	public Message(String Unum, String Gid,String title, String leader ,String content, String type, String decision ,String time)
 	{
 		if(null == Gid) this.Gid = -1;
 		else			this.Gid = Integer.parseInt(Gid);
 		
-		if(null == Uid) this.Uid = -1;
-		else			this.Uid = Integer.parseInt(Uid);
-		
+		this.Unum = Unum;
 		this.title = title;
 		this.leader = leader;
 		this.content = content;
