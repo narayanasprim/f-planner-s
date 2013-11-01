@@ -259,14 +259,17 @@ public class SVConnector{
 		return result;
 	}
 	/*사용자가 다른사용자의 요청에 대한 의견을 냄*/
-	public boolean sendOpinion(int Gid, String opinion)
+	public boolean sendOpinion(Message m)
 	{
 		boolean result = false;
 		try{
 			
-			oos.writeUTF("[SendOpinion]"+Gid+"/"+opinion);
+			oos.writeUTF("[SendOpinion]");
 			oos.flush();
-			////////결과를 기다림
+
+			oos.writeObject(m);
+			oos.flush();
+			
 			result = ois.readBoolean();
 			
 		}catch(Exception ex){
@@ -362,7 +365,7 @@ public class SVConnector{
 		
 		return result;
 	}
-	/*선택된 메시지를 삭제함*/
+	/*선택된 메시지(리스트)를 삭제함*/
 	public boolean deleteMessage(ArrayList<String> deleteList)
 	{
 		boolean result = false;
