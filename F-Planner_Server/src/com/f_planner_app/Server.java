@@ -123,7 +123,7 @@ public class Server extends JFrame{
 					else if(msg.indexOf("[SendMessage]") != -1) SendMessage();
 					else if(msg.indexOf("[GetAllGroupInfo]") != -1) GetAllGroupInfo();
 					else if(msg.indexOf("[GetAllMessages]") != -1) GetAllMessages();
-					else if(msg.indexOf("[SendOpinion]") != -1) SendOpinion(msg);
+					else if(msg.indexOf("[SendOpinion]") != -1) SendOpinion();
 					else if(msg.indexOf("[RequestGroupTime]") != -1) RequestGroupTime();
 					else if(msg.indexOf("[AddSchedule]") != -1) AddSchedule();
 					else if(msg.indexOf("[GetSchedule]") != -1) GetSchedule(msg);
@@ -155,6 +155,7 @@ public class Server extends JFrame{
 		{
 			try{
 				display.append(this.Id+ " 가 메시지를 삭제\n");
+				
 				mPacket packet = (mPacket)ois.readObject();
 				oos.writeBoolean(dc.deleteMessage(packet.getList()));
 				oos.flush();
@@ -194,6 +195,8 @@ public class Server extends JFrame{
 		public void GetAllMessages()
 		{
 			try{
+				display.append(this.Id+" 가 메시지 정보를 요청\n");
+				
 				mPacket packet = new mPacket(dc.getAllMessages());
 				oos.writeObject(packet);
 				oos.flush();
@@ -202,13 +205,13 @@ public class Server extends JFrame{
 				}
 		}
 		/*개인 메시지 응답*/
-		public void SendOpinion(String msg)
+		public void SendOpinion()
 		{
 			try{
-				String[] temp = msg.substring("[SendOpinion]".length()).split("/");
-				//temp[0]에는 Gid 가, temp[1]에는 사용자의견이 들어간다.
-				oos.writeBoolean(dc.sendOpinion(temp[0], temp[1]));
+				
+				oos.writeBoolean(dc.sendOpinion((Message)ois.readObject()));
 				oos.flush();
+				
 				}catch(Exception ex){
 					System.out.println("[Server] SendOpinion error " + ex);
 				}

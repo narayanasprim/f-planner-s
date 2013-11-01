@@ -376,21 +376,22 @@ public class DBConnector {
 	
 	}
 	/*사용자 의견 적용*/
-	public boolean sendOpinion(String Gid, String opinion)
+	public boolean sendOpinion(Message m)
 	{
 		boolean result = false;
 		
 		try{
-			if(opinion.equals("ACCEPT"))
+			if(m.decision.equals(Message.ACCEPT))
 			{
-				query = "insert into group1202 values('"+this.Id+"',"+Gid+")";
+				display.append(this.Id + " : " + m.Gid + " -> update \n");
+				query = "insert into group1202 values('"+this.Id+"',"+m.Gid+")";
 				st.executeUpdate(query);
 				//여기서 GroupSchedule 과 Merge 가 수행되어야 한다.
-				MergeSchedule(Gid);
+				MergeSchedule(Integer.toString(m.Gid));
 			}
 			
 			//메시지 테이블 업데이트
-			query = "update message1202 set Decision='"+opinion+"' where Receiver='"+this.Id+"' and Gid ="+Gid+" and Type='REQUEST'";
+			query = "update message1202 set Decision='"+m.decision+"' where Receiver='"+this.Id+"' and Unum="+m.Unum;
 			st.executeUpdate(query);
 			
 			result = true;
@@ -542,7 +543,6 @@ public class DBConnector {
 		}catch(Exception ex){
 			System.out.println("[DBConnector] getAllMessages error " + ex);
 		}
-		display.append("메시지 갯수 : "+message.length+"\n");
 		return message;
 	}
 	/*사용자가 소속된 모든 그룹 정보를 얻음*/
