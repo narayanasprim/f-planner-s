@@ -119,6 +119,7 @@ public class Server extends JFrame{
 				while((msg = ois.readUTF()) !=null)
 				{
 					if(msg.indexOf("[Login]") != -1) Login(msg);
+					else if(msg.indexOf("[GetRecentMessageDate]") != -1) GetRecentMessageDate();
 					else if(msg.indexOf("[DeleteMessage]") != -1) DeleteMessage();
 					else if(msg.indexOf("[SendMessage]") != -1) SendMessage();
 					else if(msg.indexOf("[GetAllGroupInfo]") != -1) GetAllGroupInfo();
@@ -150,6 +151,16 @@ public class Server extends JFrame{
 				}catch(Exception e){}
 			}
 		}//end of run
+		
+		public void GetRecentMessageDate()
+		{
+			try{
+			oos.writeUTF(dc.getRecentMessageDate());
+			oos.flush();
+			}catch(Exception ex){
+				System.out.println("[Server] GetRecentMessageDate error " + ex);
+			}
+		}
 		/*메시지를 지움*/
 		public void DeleteMessage()
 		{

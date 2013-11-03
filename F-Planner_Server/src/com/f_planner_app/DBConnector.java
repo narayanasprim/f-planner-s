@@ -643,4 +643,23 @@ public class DBConnector {
 		
 		return result;
 	}
+	/*최근 메시지를 받은 시간을 반환하는 메서드*/
+	public String getRecentMessageDate()
+	{
+		String result = "NULL";
+		
+		try{
+			
+			query = "select Time from message1202 where Receiver='"+this.Id+"'";
+			rs = st.executeQuery(query);
+			if(!rs.first()) 	return result;
+			else				result = rs.getString("Time");
+			
+		}catch(Exception ex){
+			System.out.println("[DBConnector] getRecentMessageDate error " + ex);
+		}
+		
+		return result;
+	}
+
 }
