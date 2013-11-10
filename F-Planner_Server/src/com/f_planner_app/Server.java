@@ -16,7 +16,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
 
-
 @SuppressWarnings("serial")
 public class Server extends JFrame{
 	
@@ -54,7 +53,6 @@ public class Server extends JFrame{
 	/*서버 객체들 초기화*/
 	public void init()
 	{
-		
 		hm = new HashMap<String,ObjectOutputStream>();
 		userList = new List();
 		userList.add("test");
@@ -80,7 +78,6 @@ public class Server extends JFrame{
 			{
 				display.append("접속 대기중..\n");
 				Socket sock = server.accept();
-				//최초 소켓으로 부터 br 과 pw 객체를 얻는다.
 					
 				ClientRequest cr = new ClientRequest(sock);
 				cr.start();
@@ -97,7 +94,9 @@ public class Server extends JFrame{
 		private String Id;
 		private DBConnector dc;
 		private ObjectOutputStream oos;
+		
 		private ObjectInputStream ois;
+		
 		
 		ClientRequest(Socket sock)
 		{
@@ -401,7 +400,6 @@ public class Server extends JFrame{
 		}
 		
 	}//end of ClientRequest Thread
-	
 }//end of server
 
 
