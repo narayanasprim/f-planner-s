@@ -532,7 +532,7 @@ public class DBConnector {
 		Message[] message = null;
 		int index = 0;
 		try{
-			query = "select m.Unum,m.Gid,m.Title,m.Leader,m.Content,g.Time,g.Type,g.Decision from message1202 m,group1202 g where m.Receiver='"+this.Id+"' and m.Gid=g.Gid order by g.Time desc";
+			query = "select m.Unum,m.Gid,m.Title,m.Leader,m.Content,m.Time, if(m.Gid IS NULL, 'NOTIFY',g.Type) as Type,g.Decision from message1202 m,group1202 g where m.Receiver='"+this.Id+"' and m.Receiver=g.Id and order by m.Time desc";
 			rs = st.executeQuery(query);
 			
 			if(!rs.next()) return message;
@@ -654,7 +654,7 @@ public class DBConnector {
 		
 		try{
 			
-			query = "select Time from message1202 where Receiver='"+this.Id+"'";
+			query = "select Time from message1202 where Receiver='"+this.Id+"' order by Time desc";
 			rs = st.executeQuery(query);
 			if(!rs.first()) 	return result;
 			else				result = rs.getString("Time");
