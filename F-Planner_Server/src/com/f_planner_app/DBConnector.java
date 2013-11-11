@@ -665,5 +665,26 @@ public class DBConnector {
 		
 		return result;
 	}
-
+	/*그룹원의 이름과 결정을 얻음*/
+	public Message[] getGroupPeopleOpinion(int Gid)
+	{
+		Message[] m = null;
+		int index = 0;
+		
+		try{
+			
+			query = "select u.Name, g.Decision from userinfo1202 u, group1202 g where g.Gid="+Gid+" and g.Id=u.Id";
+			rs = st.executeQuery(query);
+			rs.last();
+			m = new Message[rs.getRow()];
+			rs.beforeFirst();
+			
+			while(rs.next()) m[index++] = new Message(rs.getString("Name"),rs.getString("Decision"));
+			
+		}catch(Exception ex){
+			System.out.println("[DBConnector] getGroupPeopleOpinion error " + ex);
+		}
+		
+		return m;
+	}
 }

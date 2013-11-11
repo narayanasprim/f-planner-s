@@ -99,7 +99,7 @@ class Message implements Serializable
 	public static final String NOT_DECISION="NOT_DECISION";
 	public static final String NOTIFY = "NOTIFY";
 	
-	
+	public String name;
 	public String title;
 	public String leader;
 	public String type;
@@ -113,7 +113,7 @@ class Message implements Serializable
 	{
 		//Empty
 	}
-	
+	//메시지 전달용
 	public Message(String Unum, String Gid,String title, String leader ,String content, String type, String decision ,String time)
 	{
 		if(null == Gid) this.Gid = -1;
@@ -126,5 +126,11 @@ class Message implements Serializable
 		this.type = type;
 		this.decision = decision;
 		this.time = time;
+	}
+	//그룹원 확인용
+	public Message(String name, String decision)
+	{
+		this.name = name;
+		this.decision = decision;
 	}
 }
