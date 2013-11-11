@@ -118,7 +118,8 @@ public class Server extends JFrame{
 				while((msg = ois.readUTF()) !=null)
 				{
 					if(msg.indexOf("[Login]") != -1) Login(msg);
-					else if(msg.indexOf("[GetRecentMessageDate]") != -1) GetRecentMessageDate();
+					else if(msg.indexOf("[GetGroupPeopleOpinion]") != -1) GetGroupPeopleOpinion(msg);
+ 					else if(msg.indexOf("[GetRecentMessageDate]") != -1) GetRecentMessageDate();
 					else if(msg.indexOf("[DeleteMessage]") != -1) DeleteMessage();
 					else if(msg.indexOf("[SendMessage]") != -1) SendMessage();
 					else if(msg.indexOf("[GetAllGroupInfo]") != -1) GetAllGroupInfo();
@@ -151,13 +152,27 @@ public class Server extends JFrame{
 			}
 		}//end of run
 		
+		public void GetGroupPeopleOpinion(String msg)
+		{
+			int Gid = Integer.parseInt(msg.substring("[GetGroupPeopleOpinion]".length()));
+			
+			try{
+				
+				oos.writeObject(new mPacket(dc.getGroupPeopleOpinion(Gid)));
+				oos.flush();
+				
+			}catch(Exception ex){
+				display.append("[Server] GetGroupPeopleOpinion error " + ex+"\n");
+			}
+		}
+		
 		public void GetRecentMessageDate()
 		{
 			try{
 			oos.writeUTF(dc.getRecentMessageDate());
 			oos.flush();
 			}catch(Exception ex){
-				System.out.println("[Server] GetRecentMessageDate error " + ex);
+				display.append("[Server] GetRecentMessageDate error " + ex+"\n");
 			}
 		}
 		/*메시지를 지움*/
@@ -171,7 +186,7 @@ public class Server extends JFrame{
 				oos.flush();
 				
 			}catch(Exception ex){
-				System.out.println("[Server] DeleteMessage error " + ex);
+				display.append("[Server] DeleteMessage error " + ex+"\n");
 			}
 		}
 		/*메시지를 보냄*/
@@ -185,7 +200,7 @@ public class Server extends JFrame{
 				oos.flush();
 				
 			}catch(Exception ex){
-				System.out.println("[Server] SendMessage error " + ex);
+				display.append("[Server] SendMessage error " + ex+"\n");
 			}
 		}
 		/*사용자가 포함된 모든 그룹 정보를 얻음*/
@@ -198,7 +213,7 @@ public class Server extends JFrame{
 				oos.flush();
 				
 			}catch(Exception ex){
-				System.out.println("[Server] GetAllGroupInfo error " + ex);
+				display.append("[Server] GetAllGroupInfo error " + ex+"\n");
 			}
 		}
 		/*사용자에게 전송된 모든 메시지를 받음*/
@@ -211,7 +226,7 @@ public class Server extends JFrame{
 				oos.writeObject(packet);
 				oos.flush();
 				}catch(Exception ex){
-					System.out.println("[Server] GetAllMessage error " +ex);
+					display.append("[Server] GetAllMessage error " +ex+"\n");
 				}
 		}
 		/*개인 메시지 응답*/
@@ -223,7 +238,7 @@ public class Server extends JFrame{
 				oos.flush();
 				
 				}catch(Exception ex){
-					System.out.println("[Server] SendOpinion error " + ex);
+					display.append("[Server] SendOpinion error " + ex);
 				}
 		}
 		/*단체 시간 요청 및 메시지 발송 메서드*/
@@ -235,7 +250,7 @@ public class Server extends JFrame{
 				oos.flush();
 				
 				}catch(Exception ex){
-					System.out.println("[Server] RequestGourpTime error "+ex );
+					display.append("[Server] RequestGourpTime error "+ex );
 				}
 		}
 		/*Loing 메서드*/
@@ -268,7 +283,7 @@ public class Server extends JFrame{
 				}
 			}
 			}catch(Exception ex){
-				System.out.println("[Server] Login error " + ex);
+				display.append("[Server] Login error " + ex);
 			}
 		}
 		/*Schedule 추가 메서드*/
@@ -282,7 +297,7 @@ public class Server extends JFrame{
 			oos.writeBoolean(dc.addSchedule(packet.getSchedule()));
 			oos.flush();
 			}catch(Exception ex){
-				System.out.println("[Server] addSchedule error " + ex);
+				display.append("[Server] addSchedule error " + ex);
 			}
 		}
 		/*사용자 아이디 중복체크 메서드*/
@@ -298,7 +313,7 @@ public class Server extends JFrame{
 				oos.flush();
 				
 			}catch(Exception ex){
-				System.out.println("[Server] CheckId error " + ex);
+				display.append("[Server] CheckId error " + ex);
 			}
 		}
 		/*사용자 추가 메서드*/
@@ -322,7 +337,7 @@ public class Server extends JFrame{
 					}
 				}
 			}catch(Exception ex){
-				System.out.println("[Server] Adduser error" + ex);
+				display.append("[Server] Adduser error" + ex);
 			}
 		}
 		/*단일 스케줄 삭제 메서드*/
@@ -333,7 +348,7 @@ public class Server extends JFrame{
 				oos.writeBoolean(dc.deleteSchedule(wNum));
 				oos.flush();
 				}catch(Exception ex){
-					System.out.println("[Server] DeleteSchedule error " + ex);
+					display.append("[Server] DeleteSchedule error " + ex);
 				}
 		}
 		/*모든 스케줄 삭제 메서드*/
@@ -343,7 +358,7 @@ public class Server extends JFrame{
 				oos.writeBoolean(dc.deleteAllSchedules());
 				oos.flush();
 			}catch(Exception ex){
-				System.out.println("[Server] DeleteAllSchedules error " +ex);
+				display.append("[Server] DeleteAllSchedules error " +ex);
 			}
 		}
 		/*스케줄 한 행을 얻는 메서드*/
@@ -357,7 +372,7 @@ public class Server extends JFrame{
 				oos.flush();
 			
 			}catch(Exception ex){
-				System.out.println("[Server] getSchedule error "+ ex);
+				display.append("[Server] getSchedule error "+ ex);
 			}
 		}
 		/*스케줄 변경*/
@@ -368,7 +383,7 @@ public class Server extends JFrame{
 				oos.writeBoolean(dc.modifySchedule(packet.getSchedule()));
 				oos.flush();
 				}catch(Exception ex){
-					System.out.println("[Server] ModifySchedule error " + ex);
+					display.append("[Server] ModifySchedule error " + ex);
 				}
 		}
 		/*모든 스케줄을 얻는 메서드*/
@@ -381,7 +396,7 @@ public class Server extends JFrame{
 				oos.flush();
 				
 			}catch(Exception ex){
-				System.out.println("[Server] GetSchedules error  " +ex);
+				display.append("[Server] GetSchedules error  " +ex);
 			}
 		}
 		/*접속 종료*/
