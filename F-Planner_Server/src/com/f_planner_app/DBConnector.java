@@ -43,6 +43,7 @@ public class DBConnector {
 	{
 		try {
 			this.st.close();
+			this.pst.close();
 			rs = null;
 		} catch (SQLException e)
 		{
@@ -54,16 +55,13 @@ public class DBConnector {
 	{
 		String result = "SUCCESS";
 	
-		if(null==id || "".equals(id) || null == passwd || "".equals(passwd))
-		{
-			result = "FAIL";
-		}
+		if(!isSet(id) || !isSet(passwd))	result = "FAIL";
 		else
 		{
 			try{
 			query = "select Id,Pw from userinfo1202 where Id='"+id+"'";
 			rs = st.executeQuery(query);
-			rs.next();
+			if(!rs.first()) return "JOIN";
 			//첫번째 필드 : 아이디 두번째 필드 : 비밀번호
 			//비교
 			if(!rs.getString("Pw").equals(passwd)) result = "DISMATCH";				
@@ -74,6 +72,7 @@ public class DBConnector {
 			}
 
 			}catch(SQLException e){
+				display.append("[DBConnector] Login error "+e+"\n");
 				result = "JOIN";
 			}
 		}
@@ -532,7 +531,7 @@ public class DBConnector {
 		Message[] message = null;
 		int index = 0;
 		try{
-			query = "select m.Unum,m.Gid,m.Title,m.Leader,m.Content,m.Time, if(m.Gid IS NULL, 'NOTIFY',g.Type) as Type,g.Decision from message1202 m,group1202 g where m.Receiver='"+this.Id+"' and m.Receiver=g.Id and order by m.Time desc";
+			query = "select m.Unum,m.Title,m.Leader,m.Content,m.Gid, if(m.Gid IS NULL,'NOTIFY',g.Type) as Type ,g.Decision, m.Time from message1202 m,group1202 g where m.Receiver='"+this.Id+"' and m.Receiver=g.Id order by m.Time desc";
 			rs = st.executeQuery(query);
 			
 			if(!rs.next()) return message;

@@ -82,7 +82,7 @@ public class Server extends JFrame{
 				ClientRequest cr = new ClientRequest(sock);
 				cr.start();
 			}
-		}catch(Exception e){System.out.println("Server run error");}
+		}catch(Exception e){display.append("Server run error " +e +"\n");}
 	}
 	/*main method*/
 	public static void main(String[] args) {
@@ -106,7 +106,7 @@ public class Server extends JFrame{
 				oos = new ObjectOutputStream(sock.getOutputStream());
 				if(dc.DBConnection(con)) display.append("DB 연결 성공!\n");
 			} catch (IOException e) {
-				System.out.println("[Server->ClientRequest] Object create error " + e);
+				display.append("[Server->ClientRequest] Object create error " + e+"\n");
 			}
 		}
 		/*Run*/
@@ -118,13 +118,13 @@ public class Server extends JFrame{
 				while((msg = ois.readUTF()) !=null)
 				{
 					if(msg.indexOf("[Login]") != -1) Login(msg);
+					else if(msg.indexOf("[GetAllMessages]") != -1) GetAllMessages();
 					else if(msg.indexOf("[GetGroupPeopleOpinion]") != -1) GetGroupPeopleOpinion(msg);
  					else if(msg.indexOf("[GetRecentMessageDate]") != -1) GetRecentMessageDate();
 					else if(msg.indexOf("[DeleteMessage]") != -1) DeleteMessage();
 					else if(msg.indexOf("[SendMessage]") != -1) SendMessage();
-					else if(msg.indexOf("[GetAllGroupInfo]") != -1) GetAllGroupInfo();
-					else if(msg.indexOf("[GetAllMessages]") != -1) GetAllMessages();
 					else if(msg.indexOf("[SendOpinion]") != -1) SendOpinion();
+					else if(msg.indexOf("[GetAllGroupInfo]") != -1) GetAllGroupInfo();
 					else if(msg.indexOf("[RequestGroupTime]") != -1) RequestGroupTime();
 					else if(msg.indexOf("[AddSchedule]") != -1) AddSchedule();
 					else if(msg.indexOf("[GetSchedule]") != -1) GetSchedule(msg);
@@ -140,7 +140,7 @@ public class Server extends JFrame{
 				}
 				
 			}catch(Exception ex){
-				System.out.println("[Server->ClientRuequst] run error " + ex);
+				display.append("[Server->ClientRuequst] run error " + ex);
 			}
 			finally
 			{
@@ -259,23 +259,21 @@ public class Server extends JFrame{
 			try{
 			// '/' 로 연결된 사용자 아이디와 패스워드를 분리
 			String[] temp = msg.substring("[Login]".length()).split("/");
-			this.Id = temp[0];
-			display.append("사용자 로그인 -> ID : "+this.Id+ " PW : " + temp[1]+"\n");
+			
+			display.append("로그인 시도 -> ID : "+temp[0]+ " PW : " + temp[1]+"\n");
 			
 			//로그인 성공-> SUCCESS, 실패-> FAIL
 			//비밀번호 불일치-> DISMATCH , 없는 계정-> JOIN
-			String result = dc.Login(this.Id, temp[1]);
+			String result = dc.Login(temp[0], temp[1]);
 			display.append("로그인 결과 : "+result+" \n");
 			
 			//결과 통보
 			oos.writeUTF(result);
 			oos.flush();
 			
-			if(null == ois || null == oos)
-				display.append("서버 연결 끊김..\n");
-			
 			if("SUCCESS".equals(result))///결과가 성공일때만,
 			{	
+				this.Id = temp[0];
 				//해시맵에 저장
 				synchronized(hm)
 				{
@@ -412,6 +410,7 @@ public class Server extends JFrame{
 				display.append("현재 접속 인원 : " + hm.size()+"\n");
 			}
 			this.dc.Disconnection();
+			
 		}
 		
 	}//end of ClientRequest Thread
