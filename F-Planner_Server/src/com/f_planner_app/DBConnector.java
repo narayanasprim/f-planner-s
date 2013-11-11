@@ -532,7 +532,7 @@ public class DBConnector {
 		Message[] message = null;
 		int index = 0;
 		try{
-			query = "select m.Unum,m.Gid,m.Title,m.Leader,m.Content,g.Time,g.Type,g.Decision, from message1202 m,group1202 g where m.Receiver='"+this.Id+"' and m.Gid=g.Gid order by g.Time desc";
+			query = "select m.Unum,m.Gid,m.Title,m.Leader,m.Content,g.Time,g.Type,g.Decision from message1202 m,group1202 g where m.Receiver='"+this.Id+"' and m.Gid=g.Gid order by g.Time desc";
 			rs = st.executeQuery(query);
 			
 			if(!rs.next()) return message;
