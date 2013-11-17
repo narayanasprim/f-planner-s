@@ -118,6 +118,7 @@ public class Server extends JFrame{
 				while((msg = ois.readUTF()) !=null)
 				{
 					if(msg.indexOf("[Login]") != -1) Login(msg);
+					else if(msg.indexOf("[GetDaySchedule]") != -1) GetDaySchedule();
 					else if(msg.indexOf("[GetAllMessages]") != -1) GetAllMessages();
 					else if(msg.indexOf("[GetGroupPeopleOpinion]") != -1) GetGroupPeopleOpinion(msg);
  					else if(msg.indexOf("[GetRecentMessageDate]") != -1) GetRecentMessageDate();
@@ -151,6 +152,19 @@ public class Server extends JFrame{
 				}catch(Exception e){}
 			}
 		}//end of run
+		
+		public void GetDaySchedule(String msg)
+		{
+			String YMD = msg.substring("[GetDaySchedule]".length());
+			try{
+				
+				oos.writeObject(new sPacket(dc.getDaySchedule(YMD)));
+				oos.flush();
+				
+			}catch(Exception ex){
+				display.append("GetDaySchedule error" + ex + "\n");
+			}
+		}
 		
 		public void GetGroupPeopleOpinion(String msg)
 		{

@@ -215,13 +215,31 @@ public class DBConnector {
 		
 		return result;
 	}
+	/*하루 스케줄 정보를 얻음*/
+	public Schedule[] getDaySchedule(String YMD)
+	{
+		Schedule[] sch = null;
+		
+		try{
+			
+			
+			
+			
+			
+		}catch(Exception ex){
+			display.append("DBConnector error " + ex + "\n");
+		}
+		
+		return sch;
+	}
+	
 	/*시간표 정보 전체를 얻어 schedule 객체에 저장*/
 	public Schedule[] getAllSchedules()
 	{
 		int index = 0;
 		
 		try{
-			query = "select Title,sDate,eDate,Day,Place,Content,Replay,Priority from schedule1202 where Id='"+this.Id+"'";
+			query = "select Title,sDate,eDate,if(Day is null,'요일없음',Day) as Day,if(Place is null,'장소없음',Place) as Place,Content,Replay,Priority from schedule1202 where Id='"+this.Id+"'";
 			rs = st.executeQuery(query);
 			rs.last();
 			schedules = new Schedule[rs.getRow()];
@@ -388,14 +406,15 @@ public class DBConnector {
 			{
 				display.append(this.Id + " : " + m.Gid + " -> update \n");
 				//승인일 경우에만 schedule merge
-				MergeSchedule(Integer.toString(m.Gid));
+				//MergeSchedule(Integer.toString(m.Gid));
 			}
 			
 			//메시지 테이블 업데이트
 			query = "update message1202 set Decision='"+m.decision+"' where Receiver='"+this.Id+"' and Unum="+m.Unum;
 			st.executeUpdate(query);
 			
-			query = "update group1202 set Decision='"+m.decision+"' where and Id='"+this.Id+"' and Gid="+m.Gid;
+			query = "update group1202 set Decision='"+m.decision+"' where Id='"+this.Id+"' and Gid="+m.Gid;
+			st.executeUpdate(query);
 			
 			result = true;
 			

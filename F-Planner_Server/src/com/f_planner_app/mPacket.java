@@ -107,7 +107,7 @@ class Message implements Serializable
 	public String time;
 	public String decision;
 	public String Unum;//메시지 고유 번호
-	public int Gid;
+	public String Gid;
 	
 	public Message()
 	{
@@ -116,8 +116,7 @@ class Message implements Serializable
 	//메시지 전달용
 	public Message(String Unum, String Gid,String title, String leader ,String content, String type, String decision ,String time)
 	{
-		if(null == Gid) this.Gid = -1;
-		else			this.Gid = Integer.parseInt(Gid);
+		if(Gid==null) this.Gid = "-1";
 		
 		this.Unum = Unum;
 		this.title = title;
