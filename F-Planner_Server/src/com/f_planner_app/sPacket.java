@@ -1,10 +1,13 @@
 package com.f_planner_app;
 import java.io.Serializable;
 
+/*sPacket 클라이언트*/
 
-@SuppressWarnings("serial")
+
 public class sPacket implements Serializable{
 
+		
+	private static final long serialVersionUID = 2L;
 	private Schedule[] schedule;
 	
 	public sPacket()
@@ -34,9 +37,8 @@ public class sPacket implements Serializable{
 	}
 }
 
-
 @SuppressWarnings("serial")
-class Schedule implements Serializable
+class Schedule implements Serializable,Comparable<Schedule>
 {
 	public int wNum = 0;//<-- 이 정보는 서버가 정함.
 	public String Title = null;// 제목
@@ -58,6 +60,13 @@ class Schedule implements Serializable
 	public Schedule()
 	{
 		//Empty
+	}
+	public Schedule(String title, String content, String start_time, String end_time)
+	{
+		this.Title = title;
+		this.Content = content;
+		this.sDate = start_time;
+		this.eDate = end_time;
 	}
 	/*스케줄 정보용*/
 	public Schedule(String Title,String sDate, String eDate, String Day , String Place, String Content, char Replay, char Priority)
@@ -105,6 +114,21 @@ class Schedule implements Serializable
 		this.eHour = Short.parseShort(eDate.substring(8,10));
 		this.eMinute = Short.parseShort(eDate.substring(10,12));
 		this.eHMinute = (this.eHour*60 + this.eMinute);
+	}
+	
+	@Override
+	public int compareTo(Schedule s) {
+		int result = 0;
+		
+		if(Integer.parseInt(this.sDate)>Integer.parseInt(s.sDate)) result = 1;
+		else if(Integer.parseInt(this.sDate)<Integer.parseInt(s.sDate)) result = -1;
+		else
+		{
+			if(Integer.parseInt(this.eDate)>Integer.parseInt(s.eDate)) result = 1;
+			else if(Integer.parseInt(this.eDate)<Integer.parseInt(s.eDate)) result = -1;
+		}
+			
+		return result;
 	}
 }
 
