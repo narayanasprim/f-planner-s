@@ -219,12 +219,17 @@ public class DBConnector {
 	public Schedule[] getDaySchedule(String YMD)
 	{
 		Schedule[] sch = null;
-		
+		int index = 0;
 		try{
 			
-			
-			
-			
+			query = "select Wnum,Id,Title,Content,sDate,eDate,if(Day IS NULL,'없음',Day) as Day,if(Place IS NULL,'없음',Place) as Place,Replay,Priority from Schedule1202 where Id='"+this.Id+"' and sDate>="+YMD+"0000 and sDate<"+YMD+"2500 order by sDate";
+			rs = st.executeQuery(query);
+			if(rs.last())//값이 없다면
+			{
+				sch = new Schedule[rs.getRow()];
+				rs.beforeFirst();
+				while(rs.next()) sch[index++] = new Schedule(rs.getString("Title"),rs.getString("sDate"),rs.getString("eDate"),rs.getString("Day"),rs.getString("Place"),rs.getString("Content"),rs.getString("Replay").charAt(0),rs.getString("Priority").charAt(0));
+			}
 			
 		}catch(Exception ex){
 			display.append("DBConnector error " + ex + "\n");
@@ -232,7 +237,6 @@ public class DBConnector {
 		
 		return sch;
 	}
-	
 	/*시간표 정보 전체를 얻어 schedule 객체에 저장*/
 	public Schedule[] getAllSchedules()
 	{
@@ -550,7 +554,7 @@ public class DBConnector {
 		Message[] message = null;
 		int index = 0;
 		try{
-			query = "select m.Unum,m.Title,m.Leader,m.Content,m.Gid, if(m.Gid IS NULL,'NOTIFY',g.Type) as Type ,g.Decision, m.Time from message1202 m,group1202 g where m.Receiver='"+this.Id+"' and m.Receiver=g.Id order by m.Time desc";
+			query = "select m.Unum,m.Title,m.Leader,m.Content,m.Gid, if(m.Gid IS NULL,'NOTIFY',g.Type) as Type ,if(m.Gid IS NULL,'NOT_DECISION',g.Decision) as Decision, m.Time from message1202 m,group1202 g where m.Receiver='"+this.Id+"' and m.Receiver=g.Id order by m.Time desc";
 			rs = st.executeQuery(query);
 			
 			if(!rs.next()) return message;
