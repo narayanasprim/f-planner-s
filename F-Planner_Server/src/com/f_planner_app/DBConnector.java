@@ -228,7 +228,11 @@ public class DBConnector {
 			{
 				sch = new Schedule[rs.getRow()];
 				rs.beforeFirst();
-				while(rs.next()) sch[index++] = new Schedule(rs.getString("Title"),rs.getString("sDate"),rs.getString("eDate"),rs.getString("Day"),rs.getString("Place"),rs.getString("Content"),rs.getString("Replay").charAt(0),rs.getString("Priority").charAt(0));
+				while(rs.next())
+				{
+					sch[index] = new Schedule(rs.getString("Title"),rs.getString("sDate"),rs.getString("eDate"),rs.getString("Day"),rs.getString("Place"),rs.getString("Content"),rs.getString("Replay").charAt(0),rs.getString("Priority").charAt(0));
+					sch[index++].wNum = Integer.parseInt(rs.getString("Wnum"));
+				}
 			}
 			
 		}catch(Exception ex){
