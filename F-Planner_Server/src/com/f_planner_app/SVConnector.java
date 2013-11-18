@@ -227,7 +227,7 @@ public class SVConnector{
 			oos.writeUTF("[RequestGroupTime]");
 			oos.flush();
 			
-			mPacket packet = new mPacket(Gname, phones, content, sDate, eDate,aTime, type);
+			mPacket packet = new mPacket(phones ,Gname, content, sDate, eDate,aTime, type);
 			oos.writeObject(packet);
 			oos.flush();
 			//잠시..기다리고..
