@@ -14,7 +14,7 @@ public class mPacket implements Serializable{
 	/*단순 메시지*/
 	private Message[] message;
 	/*FindfreeTime 전용 메시지 생성자*/
-	public mPacket(String title, ArrayList<String> ph, String content, String sDate, String eDate,String aTime, String type)
+	public mPacket(ArrayList<String> ph , String title, String content, String sDate, String eDate,String aTime, String type)
 	{
 		this.title = title;
 		this.list = ph;
@@ -113,11 +113,10 @@ class Message implements Serializable
 	{
 		//Empty
 	}
-	//메시지 전달용
+	
 	public Message(String Unum, String Gid,String title, String leader ,String content, String type, String decision ,String time)
 	{
-		if(Gid==null) this.Gid = "-1";
-		
+		this.Gid = Gid;
 		this.Unum = Unum;
 		this.title = title;
 		this.leader = leader;
@@ -126,6 +125,7 @@ class Message implements Serializable
 		this.decision = decision;
 		this.time = time;
 	}
+	
 	//그룹원 확인용
 	public Message(String name, String decision)
 	{
