@@ -5,9 +5,9 @@ import java.io.Serializable;
 
 
 public class sPacket implements Serializable{
-
 		
 	private static final long serialVersionUID = 2L;
+
 	private Schedule[] schedule;
 	
 	public sPacket()
