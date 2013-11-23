@@ -42,6 +42,7 @@ class Group implements Serializable
 	public String sDate;
 	public String eDate;
 	public int aTime;
+	public String Register;
 	public String DATE;
 	
 	public Group()
@@ -49,7 +50,7 @@ class Group implements Serializable
 		//Empth
 	}
 	
-	public Group(int Gid,String Leader,String Gname,String People,int Pcount,String content,String sDate,String eDate,int aTime,String DATE){
+	public Group(int Gid,String Leader,String Gname,String People,int Pcount,String content,String sDate,String eDate,int aTime,String Register,String DATE){
 	
 		this.Gid = Gid;
 		this.Leader = Leader;
@@ -60,6 +61,7 @@ class Group implements Serializable
 		this.sDate = sDate;
 		this.eDate = eDate;
 		this.aTime = aTime;
+		this.Register = Register;
 		this.DATE = DATE;
 	}
 }
