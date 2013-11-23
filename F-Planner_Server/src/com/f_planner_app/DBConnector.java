@@ -8,7 +8,6 @@ import java.util.ArrayList;
 
 import javax.swing.JTextArea;
 
-
 public class DBConnector {
 	
 	Connection con = null;
@@ -199,13 +198,15 @@ public class DBConnector {
 		boolean result = false;
 		int Wnum = 0;
 		try{
-			
-			query = "select max(Wnum) from schedule1202 where Id='"+this.Id+"'";
+			query = "select max(Wnum) as Wnum from schedule1202 where Id='"+this.Id+"'";
 			rs = st.executeQuery(query);
-			rs.next();
-			Wnum = Integer.parseInt(rs.getString(1))+1;
-			query = "insert into schedule1202 values(NULL,"+Wnum+",'"+this.Id+"','"+sc.Title+"','"+sc.sDate+"','"+sc.eDate+"','"+sc.Day+"','"+sc.Place+"','"+sc.Content+"','"+sc.Replay+"','"+sc.Priority+"')";
+			if(!rs.first()) Wnum = 1;
+			else
+			Wnum = Integer.parseInt(rs.getString("Wnum"))+1;
+			//query = "insert into schedule1202 values(NULL,"+Wnum+",'"+this.Id+"','"+sc.Title+"','"+sc.sDate+"','"+sc.eDate+"','"+sc.Day+"','"+sc.Place+"','"+sc.Content+"','"+sc.Replay+"','"+sc.Priority+"')";
+			query = "insert into schedule1202(Id,Wnum,Title,Content,sDate,eDate) values('"+this.Id+"',"+Wnum+",'"+sc.Title+"','"+sc.Content+"','"+sc.sDate+"','"+sc.eDate+"')";
 		
+			
 			if(st.executeUpdate(query)>0) result = true;
 			
 		}catch(SQLException e){
@@ -558,7 +559,7 @@ public class DBConnector {
 		Message[] message = null;
 		int index = 0;
 		try{
-			query = "select m.Unum,m.Title,m.Leader,m.Content,m.Gid, if(m.Gid IS NULL,'NOTIFY',g.Type) as Type ,if(m.Gid IS NULL,'NOT_DECISION',g.Decision) as Decision, m.Time from message1202 m,group1202 g where m.Receiver='"+this.Id+"' and m.Receiver=g.Id order by m.Time desc";
+			query = "select m.Unum,m.Title,m.Leader,m.Content,m.Gid, if(m.Gid IS NULL,'NOTIFY',g.Type) as Type ,if(m.Gid IS NULL,'NOT_DECISION',g.Decision) as Decision, m.Time from message1202 m,group1202 g where m.Receiver='"+this.Id+"' and m.Receiver=g.Id and m.Gid=g.Gid order by m.Time desc";
 			rs = st.executeQuery(query);
 			
 			if(!rs.next()) return message;
@@ -627,10 +628,18 @@ public class DBConnector {
 			for(i=0; i<phones.size(); i++)
 			{
 				try{
-					query = "select Id from userinfo1202 where Phone ='"+phones.get(i)+"'";
+					String tmpPhoneNum = phones.get(i).replaceAll("-","");
+					
+					display.append(tmpPhoneNum+"\n");
+					query = "SELECT Id from userinfo1202 where Phone ='"+tmpPhoneNum+"'";
 					rs = st.executeQuery(query); rs.first();
 					idList.add(rs.getString("Id"));
-				}catch(Exception e){}
+					
+					display.append(query);
+					
+				}catch(Exception e){
+					display.append(""+e+"\n");
+				}
 			}
 			
 			for(i=0; i<idList.size(); i++)

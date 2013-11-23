@@ -118,7 +118,7 @@ public class Server extends JFrame{
 				while((msg = ois.readUTF()) !=null)
 				{
 					if(msg.indexOf("[Login]") != -1) Login(msg);
-					else if(msg.indexOf("[GetDaySchedule]") != -1) GetDaySchedule();
+					else if(msg.indexOf("[GetDaySchedule]") != -1) GetDaySchedule(msg);
 					else if(msg.indexOf("[GetAllMessages]") != -1) GetAllMessages();
 					else if(msg.indexOf("[GetGroupPeopleOpinion]") != -1) GetGroupPeopleOpinion(msg);
  					else if(msg.indexOf("[GetRecentMessageDate]") != -1) GetRecentMessageDate();
@@ -209,7 +209,9 @@ public class Server extends JFrame{
 			try{
 				
 				mPacket packet = (mPacket)ois.readObject();
-				
+				display.append(this.Id+"가 메시지를 보냄\n");
+				display.append("제목 : " + packet.getTitle()+" 내용 : "+packet.getContent()+"\n");
+				display.append(""+packet.getList().size()+"\n");
 				oos.writeBoolean(dc.sendMessage(packet));
 				oos.flush();
 				
@@ -305,11 +307,14 @@ public class Server extends JFrame{
 			//해당 플래그를 읽어들였다면, 다음으로 스케줄 객체를 받는다.
 			sPacket packet = (sPacket)ois.readObject();
 			
+			display.append("시작시간 : " + packet.getSchedule().sDate + " \n");
+			display.append("종료시간 : " + packet.getSchedule().eDate + " \n");
+			
 			//DB에 스케줄을 더하고, 그 결과를 클라이언트에게 반환
 			oos.writeBoolean(dc.addSchedule(packet.getSchedule()));
 			oos.flush();
 			}catch(Exception ex){
-				display.append("[Server] addSchedule error " + ex);
+				display.append("[Server] addSchedule error " + ex + "\n");
 			}
 		}
 		/*사용자 아이디 중복체크 메서드*/
@@ -325,7 +330,7 @@ public class Server extends JFrame{
 				oos.flush();
 				
 			}catch(Exception ex){
-				display.append("[Server] CheckId error " + ex);
+				display.append("[Server] CheckId error " + ex+"\n");
 			}
 		}
 		/*사용자 추가 메서드*/
@@ -349,7 +354,7 @@ public class Server extends JFrame{
 					}
 				}
 			}catch(Exception ex){
-				display.append("[Server] Adduser error" + ex);
+				display.append("[Server] Adduser error" + ex + "\n");
 			}
 		}
 		/*단일 스케줄 삭제 메서드*/
@@ -360,7 +365,7 @@ public class Server extends JFrame{
 				oos.writeBoolean(dc.deleteSchedule(wNum));
 				oos.flush();
 				}catch(Exception ex){
-					display.append("[Server] DeleteSchedule error " + ex);
+					display.append("[Server] DeleteSchedule error " + ex + "\n");
 				}
 		}
 		/*모든 스케줄 삭제 메서드*/
@@ -370,7 +375,7 @@ public class Server extends JFrame{
 				oos.writeBoolean(dc.deleteAllSchedules());
 				oos.flush();
 			}catch(Exception ex){
-				display.append("[Server] DeleteAllSchedules error " +ex);
+				display.append("[Server] DeleteAllSchedules error " +ex + "\n");
 			}
 		}
 		/*스케줄 한 행을 얻는 메서드*/
@@ -384,7 +389,7 @@ public class Server extends JFrame{
 				oos.flush();
 			
 			}catch(Exception ex){
-				display.append("[Server] getSchedule error "+ ex);
+				display.append("[Server] getSchedule error "+ ex + "\n");
 			}
 		}
 		/*스케줄 변경*/
@@ -395,7 +400,7 @@ public class Server extends JFrame{
 				oos.writeBoolean(dc.modifySchedule(packet.getSchedule()));
 				oos.flush();
 				}catch(Exception ex){
-					display.append("[Server] ModifySchedule error " + ex);
+					display.append("[Server] ModifySchedule error " + ex + "\n");
 				}
 		}
 		/*모든 스케줄을 얻는 메서드*/
@@ -408,7 +413,7 @@ public class Server extends JFrame{
 				oos.flush();
 				
 			}catch(Exception ex){
-				display.append("[Server] GetSchedules error  " +ex);
+				display.append("[Server] GetSchedules error  " +ex + "\n");
 			}
 		}
 		/*접속 종료*/
