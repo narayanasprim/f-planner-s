@@ -118,6 +118,8 @@ public class Server extends JFrame{
 				while((msg = ois.readUTF()) !=null)
 				{
 					if(msg.indexOf("[Login]") != -1) Login(msg);
+					else if(msg.indexOf("[CancelGroup]") != -1) CancelGroup();
+					else if(msg.indexOf("[SetGroupPeopleOpinion]") != -1) SetGroupPeopleOpinion(msg);
 					else if(msg.indexOf("[GetDaySchedule]") != -1) GetDaySchedule(msg);
 					else if(msg.indexOf("[GetAllMessages]") != -1) GetAllMessages();
 					else if(msg.indexOf("[GetGroupPeopleOpinion]") != -1) GetGroupPeopleOpinion(msg);
@@ -141,7 +143,7 @@ public class Server extends JFrame{
 				}
 				
 			}catch(Exception ex){
-				display.append("[Server->ClientRuequst] run error " + ex);
+				Log("[Server->ClientRuequst] run error " + ex);
 			}
 			finally
 			{
@@ -152,6 +154,31 @@ public class Server extends JFrame{
 				}catch(Exception e){}
 			}
 		}//end of run
+		
+		public void CancelGroup(String msg)
+		{
+			try{
+				String gid = msg.substring("[CancelGroup]".length());
+				oos.writeBoolean(dc.CancelGroup(gid));
+				oos.flush();
+			}catch(Exception ex){
+				Log("[Server] CancelGroup error " + ex);
+			}
+		}
+		
+		public void SetGroupPeopleOpinion(String msg)
+		{
+			try{
+				String[] temp = msg.substring("[SetGroupPeopleOpinion]".length()).split("/");
+				
+				//temp[0]Àº Gid, temp[1]Àº opinion
+				oos.writeBoolean(dc.SetGroupPeopleOpinion(temp[0],temp[1]));
+				oos.flush();
+				
+			}catch(Exception ex){
+				Log("[Server] SetGroupPeopleOpinion error " + ex);
+			}
+		}
 		
 		public void GetDaySchedule(String msg)
 		{
@@ -432,6 +459,10 @@ public class Server extends JFrame{
 			
 		}
 		
+		public void Log(String error)
+		{
+			display.append(error+"\n");
+		}
 	}//end of ClientRequest Thread
 }//end of server
 

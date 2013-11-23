@@ -71,7 +71,7 @@ public class DBConnector {
 			}
 
 			}catch(SQLException e){
-				display.append("[DBConnector] Login error "+e+"\n");
+				Log("[DBConnector] Login error "+e);
 				result = "JOIN";
 			}
 		}
@@ -160,6 +160,11 @@ public class DBConnector {
 	{
 		return getInfo("Priority");
 	}
+	/*Log*/
+	public void Log(String error)
+	{
+		Log(error+"\n");
+	}
 	/*사용자 정보를 입력함*/
 	public boolean addUser(String ID, String PW, String PHONE, String NAME)
 	{
@@ -237,7 +242,7 @@ public class DBConnector {
 			}
 			
 		}catch(Exception ex){
-			display.append("DBConnector error " + ex + "\n");
+			Log("DBConnector error " + ex);
 		}
 		
 		return sch;
@@ -413,14 +418,8 @@ public class DBConnector {
 			
 			if(m.decision.equals(Message.ACCEPT))
 			{
-				display.append(this.Id + " : " + m.Gid + " -> update \n");
-				//승인일 경우에만 schedule merge
-				//MergeSchedule(Integer.toString(m.Gid));
+				Log(this.Id + " : " + m.Gid + " -> update ");
 			}
-			
-			//메시지 테이블 업데이트
-			query = "update message1202 set Decision='"+m.decision+"' where Receiver='"+this.Id+"' and Unum="+m.Unum;
-			st.executeUpdate(query);
 			
 			query = "update group1202 set Decision='"+m.decision+"' where Id='"+this.Id+"' and Gid="+m.Gid;
 			st.executeUpdate(query);
@@ -584,7 +583,7 @@ public class DBConnector {
 		int i=0;
 
 		try{
-			display.append(this.Id+" 가 그룹정보를 요청\n");
+			Log(this.Id+" 가 그룹정보를 요청");
 			query = "select Gid from group1202 where Id='"+this.Id+"'";
 			
 			rs = st.executeQuery(query); 
@@ -640,15 +639,15 @@ public class DBConnector {
 				try{
 					String tmpPhoneNum = phones.get(i).replaceAll("-","");
 					
-					display.append(tmpPhoneNum+"\n");
+					Log(tmpPhoneNum+"\n");
 					query = "SELECT Id from userinfo1202 where Phone ='"+tmpPhoneNum+"'";
 					rs = st.executeQuery(query); rs.first();
 					idList.add(rs.getString("Id"));
 					
-					display.append(query);
+					Log(query);
 					
 				}catch(Exception e){
-					display.append(""+e+"\n");
+					Log(""+e);
 				}
 			}
 			
@@ -666,7 +665,7 @@ public class DBConnector {
 			
 			result = true;
 		}catch(Exception ex){
-			System.out.println("[DBConnector] sendMessage error " + ex);
+			Log("[DBConnector] sendMessage error " + ex);
 		}
 		
 		return result;
@@ -732,4 +731,40 @@ public class DBConnector {
 		
 		return m;
 	}
+	/*그룹원의 의견을 조정*/
+	public boolean SetGroupPeopleOpinion(String Gid, String opinion)
+	{
+		boolean result = false;
+		try{
+			
+			query = "Update Group1202 set Decision='"+opinion+"' where Gid="+Gid;
+			
+			if(st.executeUpdate(query)>0) result = true;
+			
+		}catch(Exception ex )
+		{Log("[DBConnector] SetGroupPeopleOpinion error " + ex);}
+		
+		return result;
+	}
+	/*그룹 주최자가 그룹을 취소*/
+	public boolean CancelGroup(String Gid)
+	{
+		boolean result = false;
+		try{
+			
+			query = "Delete from message1202 where Gid="+Gid;
+			st.executeUpdate(query);
+			query = "Delete from group1202 where Gid="+Gid;
+			st.executeUpdate(query);
+			query = "Delete from findtime1202 where Gid="+Gid;
+			st.executeUpdate(query);
+			
+			result = true;
+		}catch(Exception ex){
+			Log("[DBConnector] CancelGroup error " + ex);
+		}
+		return result;
+	}
+
+
 }
