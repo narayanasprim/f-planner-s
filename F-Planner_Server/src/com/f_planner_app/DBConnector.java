@@ -603,7 +603,17 @@ public class DBConnector {
 				{
 					query = "select * from findtime1202 where Gid="+gid[i];
 					rs = st.executeQuery(query); rs.next();
-					group[i] = new Group(Integer.parseInt(rs.getString("Gid")),rs.getString("Leader"),rs.getString("Gname"),rs.getString("People"),Integer.parseInt(rs.getString("Pcount")),rs.getString("Content"),rs.getString("sDate"),rs.getString("eDate"),Integer.parseInt(rs.getString("aTime")),rs.getString("DATE"));
+					group[i] = new Group(Integer.parseInt(rs.getString("Gid")),
+														  rs.getString("Leader"),
+														  rs.getString("Gname"),
+														  rs.getString("People"),
+														  Integer.parseInt(rs.getString("Pcount")),
+														  rs.getString("Content"),
+														  rs.getString("sDate"),
+														  rs.getString("eDate"),
+														  Integer.parseInt(rs.getString("aTime")),
+														  rs.getString("Register"),
+														  rs.getString("DATE"));
 				}
 			}
 			
