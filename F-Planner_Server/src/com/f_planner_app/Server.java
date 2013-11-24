@@ -118,7 +118,11 @@ public class Server extends JFrame{
 				while((msg = ois.readUTF()) !=null)
 				{
 					if(msg.indexOf("[Login]") != -1) Login(msg);
-					else if(msg.indexOf("[CancelGroup]") != -1) CancelGroup();
+					else if(msg.indexOf("[SetCurrentLocation]") != -1) SetCurrentLocation(msg);
+					else if(msg.indexOf("[SetDestination]") != -1) SetDestination(msg);
+					else if(msg.indexOf("[GetGroupPeopleLocation]") != -1) GetGroupPeopleLocation(msg);
+					else if(msg.indexOf("[GetDestinationInfo]") != -1) GetDestinationInfo();
+					else if(msg.indexOf("[CancelGroup]") != -1) CancelGroup(msg);
 					else if(msg.indexOf("[SetGroupPeopleOpinion]") != -1) SetGroupPeopleOpinion(msg);
 					else if(msg.indexOf("[GetDaySchedule]") != -1) GetDaySchedule(msg);
 					else if(msg.indexOf("[GetAllMessages]") != -1) GetAllMessages();
@@ -154,6 +158,54 @@ public class Server extends JFrame{
 				}catch(Exception e){}
 			}
 		}//end of run
+		
+		public void SetCurrentLocation(String msg)
+		{
+			try{
+				String[] temp = msg.substring("[SetCurrentLocation]".length()).split("/");
+				//temp[0] -> X , temp[1] -> Y , temp[2] -> 남은시간
+				oos.writeBoolean(dc.setCurrentLocation(temp[0],,temp[1],temp[2]));
+				oos.flush();
+				
+			}catch(Exception ex){
+				System.out.println("[Server] SetCurrentLocation error "  + ex);
+			}
+		}
+		
+		public void SetDestination(String msg)
+		{
+			String[] temp  = msg.substring("[SetDestination]".length()).split("/");
+			//temp[0] -> X , temp[1] -> Y , temp[2] -> place
+			try{
+			oos.writeBoolean(dc.setDestination(temp[0],temp[1],temp[2]));
+			oos.flush();
+			}catch(Exception ex){
+				Log("[Server] SetDestination error " + ex);
+			}
+		}
+		
+		public void GetGroupPeopleLocation(String msg)
+		{
+			try{
+			String gid = msg.substring("[GetGroupPeopleLocation]".length());	
+			oos.writeObject(new mPacket(dc.getGroupPeopleLocation(gid)));
+			oos.flush();
+			}catch(Exception ex){
+				Log("[Server] GetGroupPeopleLocation error " + ex);
+			}
+		}
+		
+		public void GetDestinationInfo()
+		{
+			try{
+				
+				oos.writeObject(new mPacket(dc.getDestinaionInfo()));
+				oos.flush();
+				
+			}catch(Exception ex){
+				Log("[Server] GetDestinationInfo error " + ex);
+			}
+		}
 		
 		public void CancelGroup(String msg)
 		{
