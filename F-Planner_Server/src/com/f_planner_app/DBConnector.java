@@ -765,6 +765,84 @@ public class DBConnector {
 		}
 		return result;
 	}
-
-
+	/*도착지 정보 및 이름을 얻음*/
+	public Message[] getDestinaionInfo()
+	{
+		Message[] m = null;
+		try{
+			
+			query = "Select X(dLocation) as x,Y(dLocation) as y,Place from Gps1202 where Id='"+this.Id+"'"; 
+			rs = st.executeQuery(query);
+			if(rs.first())
+			{
+				m = new Message[1]; m[0] = new Message();
+				m[0].name = rs.getString("Place");
+				m[0].time = rs.getString("x");
+				m[0].title = rs.getString("y");
+			}
+			
+		}catch(Exception ex){
+			Log("[DBConnector] getDestinaionInfo error " + ex);
+		}
+		
+		return m;
+	}
+	/*해당 그룹 그룹원들의 위치 정보를 얻음*/
+	public Message[] getGroupPeopleLocation(String Gid)
+	{
+		Message[] messages = null;
+		int index = 0;
+		try{
+			
+			//그룹번호 Gid에 속하는 사람들 중, 동의한 사람들의 위치 정보를 얻음 
+			query = "select u.Name ,X(gps.cLocation) as x, Y(gps.cLocation) as y from Gps1202 gps, Group1202 g,Userinfo1202 u where g.Gid="+Gid+" and g.Decision='ACCEPT' and g.Id=gps.Id and u.Id=g.Id";
+			rs = st.executeQuery(query);
+			if(rs.last()) messages = new Message[rs.getRow()];
+			rs.beforeFirst();
+			while(rs.next())
+			{
+				messages[index] = new Message();
+				messages[index].name = rs.getString("Name");
+				messages[index].time = rs.getString("x");
+				messages[index].title = rs.getString("y");
+				index++;
+			}
+			
+		}catch(Exception ex){
+			Log("[DBConnector] getGroupPeopleLocation error " + ex);
+		}
+		
+		return messages;
+	}
+	/*목적지를 설정*/
+	public boolean setDestination(String X, String Y, String Place)
+	{
+		boolean result = false;
+		try{
+			
+			query = "Update Gps1202 Set dLocation=Point("+X+","+Y+"),Place='"+Place+"' where Id='"+this.Id+"'";
+			if(st.executeUpdate(query)>0) result = true;
+			
+		}catch(Exception ex){
+			Log("[DBConnector] setDestination error " + ex);
+		}
+		
+		return result;
+	}
+	/*현재 위치를 설정*/
+	public boolean setCurrentLocation(String X, String Y, int remainTime)
+	{
+		boolean result = false;
+		
+		try{
+			
+			query = "Update Gps1202 set cLocation=Point("+X+","+Y+"), rTime="+remainTime+" where Id='"+this.Id+"'";
+			if(st.executeUpdate(query)>0) result = true;
+			
+		}catch(Exception ex){
+			Log("[DBConnector] setCurrentLocation error " + ex);
+		}
+		
+		return result;
+	}
 }
