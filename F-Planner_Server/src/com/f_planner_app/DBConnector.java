@@ -31,7 +31,7 @@ public class DBConnector {
 		try {
 			this.con = c;
 			st = con.createStatement();
-			pst = con.prepareStatement("insert into message1202(Receiver,Title,Leader,Content,Type,Time) values(?,?,?,?,'NOTIFY',now())");
+			pst = con.prepareStatement("insert into message1202(Receiver,Title,Leader,Content,Time) values(?,?,?,?,now())");
 			return true;
 		} catch (SQLException e) {
 			return false;
@@ -163,7 +163,7 @@ public class DBConnector {
 	/*Log*/
 	public void Log(String error)
 	{
-		Log(error+"\n");
+		display.append(error+"\n");
 	}
 	/*사용자 정보를 입력함*/
 	public boolean addUser(String ID, String PW, String PHONE, String NAME)
@@ -203,13 +203,15 @@ public class DBConnector {
 		boolean result = false;
 		int Wnum = 0;
 		try{
+			
 			query = "select max(Wnum) as Wnum from schedule1202 where Id='"+this.Id+"'";
 			rs = st.executeQuery(query);
 			if(!rs.first()) Wnum = 1;
 			else
 			Wnum = Integer.parseInt(rs.getString("Wnum"))+1;
-			//query = "insert into schedule1202 values(NULL,"+Wnum+",'"+this.Id+"','"+sc.Title+"','"+sc.sDate+"','"+sc.eDate+"','"+sc.Day+"','"+sc.Place+"','"+sc.Content+"','"+sc.Replay+"','"+sc.Priority+"')";
-			query = "insert into schedule1202(Id,Wnum,Title,Content,sDate,eDate) values('"+this.Id+"',"+Wnum+",'"+sc.Title+"','"+sc.Content+"','"+sc.sDate+"','"+sc.eDate+"')";
+			Log("insert into schedule1202(Id,Wnum,Title,Content,sDate,eDate) values('"+this.Id+"',"+sc.wNum+",'"+sc.Title+"','"+sc.Content+"','"+sc.sDate+"','"+sc.eDate+"')");
+			query = "insert into schedule1202 values('"+this.Id+"',"+Wnum+",'"+sc.Title+"','"+sc.sDate+"','"+sc.eDate+"','"+sc.Day+"','"+sc.Place+"','"+sc.Content+"','"+sc.Replay+"','"+sc.Priority+"')";
+			//query = "insert into schedule1202(Id,Wnum,Title,Content,sDate,eDate) values('"+this.Id+"',"+sc.wNum+",'"+sc.Title+"','"+sc.Content+"','"+sc.sDate+"','"+sc.eDate+"')";
 		
 			
 			if(st.executeUpdate(query)>0) result = true;
@@ -253,14 +255,15 @@ public class DBConnector {
 		int index = 0;
 		
 		try{
-			query = "select Title,sDate,eDate,if(Day is null,'요일없음',Day) as Day,if(Place is null,'장소없음',Place) as Place,Content,Replay,Priority from schedule1202 where Id='"+this.Id+"'";
+			query = "select Wnum, Title,sDate,eDate,if(Day is null,'요일없음',Day) as Day,if(Place is null,'장소없음',Place) as Place,Content,Replay,Priority from schedule1202 where Id='"+this.Id+"' order by sDate";
 			rs = st.executeQuery(query);
 			rs.last();
 			schedules = new Schedule[rs.getRow()];
 			rs.beforeFirst();
 			while(rs.next())
 			{
-				schedules[index++] = new Schedule(rs.getString("Title"),rs.getString("sDate"),rs.getString("eDate"),rs.getString("Day"),rs.getString("Place"),rs.getString("Content"),rs.getString("Replay").charAt(0),rs.getString("Priority").charAt(0));
+				schedules[index] = new Schedule(rs.getString("Title"),rs.getString("sDate"),rs.getString("eDate"),rs.getString("Day"),rs.getString("Place"),rs.getString("Content"),rs.getString("Replay").charAt(0),rs.getString("Priority").charAt(0));
+				schedules[index++].wNum = Integer.parseInt(rs.getString("Wnum"));
 			}
 			
 		}catch(SQLException e){
@@ -347,7 +350,6 @@ public class DBConnector {
 		 String sDate = packet.getSdate();
 		 String eDate = packet.getEdate();
 		 String aTime = packet.getAtime();
-		 String type = packet.getMessageType();
 		 boolean result = false;
 		 String names = "",Gid = "";
 		 ArrayList<String> idList = new ArrayList<String>();
@@ -358,9 +360,9 @@ public class DBConnector {
 			 for(int i=0; i<phones.size(); i++)
 			 {
 				 try{
-				 query = "select Id from userinfo1202 where Phone='"+phones.get(i)+"'";
+				 query = "select Id,Name from userinfo1202 where Phone='"+phones.get(i)+"'";
 				 rs = st.executeQuery(query); rs.next();
-				 names += rs.getString("Id")+",";
+				 names += rs.getString("Name")+",";
 				 idList.add(rs.getString("Id"));
 				 }catch(Exception ex){}
 			 }
@@ -394,7 +396,7 @@ public class DBConnector {
 			//해당 Gid로 다른 사용자들에게 메시지를 보낸다.
 			for(int i=0; i<idList.size(); i++)
 			{
-				query = "insert into message1202(Receiver,Gid,Title,Leader,Content,Type,Time) values('"+idList.get(i)+"',"+Gid+",'"+title+"','"+this.Id+"','"+content+"','"+type+"',now())";
+				query = "insert into message1202(Receiver,Gid,Title,Leader,Content,Time) values('"+idList.get(i)+"',"+Gid+",'"+title+"','"+this.Id+"','"+content+"',now())";
 				st.executeUpdate(query);
 				query = "insert into group1202(Id,Gid,Type,Time) values('"+idList.get(i)+"',"+Gid+",'REQUEST',now())";
 				st.executeUpdate(query);
@@ -558,7 +560,7 @@ public class DBConnector {
 		Message[] message = null;
 		int index = 0;
 		try{
-			query = "select m.Unum,m.Title,m.Leader,m.Content,m.Gid, if(m.Gid IS NULL,'NOTIFY',g.Type) as Type ,if(m.Gid IS NULL,'NOT_DECISION',g.Decision) as Decision, m.Time from message1202 m,group1202 g where m.Receiver='"+this.Id+"' and m.Receiver=g.Id and m.Gid=g.Gid order by m.Time desc";
+			query = "select m.Unum , m.title,m.leader, m.content, m.gid, m.time ,if(m.gid IS NULL,'NOTIFY',g.type) as Type , if(m.gid IS NULL,'NOT_DECISION',g.Decision) as Decision from message1202 m , group1202 g where m.receiver='"+this.Id+"' and m.receiver = g.Id and (m.gid=g.gid or m.gid is null) group by m.Unum order by m.time desc";
 			rs = st.executeQuery(query);
 			
 			if(!rs.next()) return message;
@@ -630,6 +632,8 @@ public class DBConnector {
 		String title = packet.getTitle();
 		String content  = packet.getContent();
 		ArrayList<String> idList = new ArrayList<String>();
+		Log("제목 : " + title + " 내용 : " + content);
+		
 		int i = 0;
 		
 		try{
@@ -639,17 +643,15 @@ public class DBConnector {
 				try{
 					String tmpPhoneNum = phones.get(i).replaceAll("-","");
 					
-					Log(tmpPhoneNum+"\n");
 					query = "SELECT Id from userinfo1202 where Phone ='"+tmpPhoneNum+"'";
 					rs = st.executeQuery(query); rs.first();
 					idList.add(rs.getString("Id"));
-					
-					Log(query);
 					
 				}catch(Exception e){
 					Log(""+e);
 				}
 			}
+			Log(idList.size()+"사이즈");
 			
 			for(i=0; i<idList.size(); i++)
 			{
@@ -658,9 +660,10 @@ public class DBConnector {
 					pst.setString(2, title);
 					pst.setString(3, this.Id);
 					pst.setString(4, content);
-					
 					pst.executeUpdate();
-				}catch(Exception ex){}
+				}catch(Exception ex){
+					Log("pst error" + ex);
+				}
 			}
 			
 			result = true;
@@ -830,7 +833,7 @@ public class DBConnector {
 		return result;
 	}
 	/*현재 위치를 설정*/
-	public boolean setCurrentLocation(String X, String Y, int remainTime)
+	public boolean setCurrentLocation(String X, String Y, String remainTime)
 	{
 		boolean result = false;
 		

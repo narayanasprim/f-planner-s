@@ -46,8 +46,7 @@ public class Server extends JFrame{
 	public void Frameinit()
 	{
 		setLayout(new BorderLayout());
-		setSize(500,400);
-		setResizable(false);
+		setSize(700,400);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
 	/*서버 객체들 초기화*/
@@ -55,14 +54,12 @@ public class Server extends JFrame{
 	{
 		hm = new HashMap<String,ObjectOutputStream>();
 		userList = new List();
-		userList.add("test");
 		display = new JTextArea();
 		display.setEditable(false);
 		scroll = new JScrollPane(display);
 		scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
 		
 		add("Center",scroll);
-		add("East",userList);
 		
 		try {
 			con = DriverManager.getConnection(url,user,pass);
@@ -118,6 +115,7 @@ public class Server extends JFrame{
 				while((msg = ois.readUTF()) !=null)
 				{
 					if(msg.indexOf("[Login]") != -1) Login(msg);
+
 					else if(msg.indexOf("[SetCurrentLocation]") != -1) SetCurrentLocation(msg);
 					else if(msg.indexOf("[SetDestination]") != -1) SetDestination(msg);
 					else if(msg.indexOf("[GetGroupPeopleLocation]") != -1) GetGroupPeopleLocation(msg);
@@ -164,7 +162,7 @@ public class Server extends JFrame{
 			try{
 				String[] temp = msg.substring("[SetCurrentLocation]".length()).split("/");
 				//temp[0] -> X , temp[1] -> Y , temp[2] -> 남은시간
-				oos.writeBoolean(dc.setCurrentLocation(temp[0],,temp[1],temp[2]));
+				oos.writeBoolean(dc.setCurrentLocation(temp[0],temp[1],temp[2]));
 				oos.flush();
 				
 			}catch(Exception ex){
