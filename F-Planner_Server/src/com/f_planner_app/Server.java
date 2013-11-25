@@ -115,11 +115,12 @@ public class Server extends JFrame{
 				while((msg = ois.readUTF()) !=null)
 				{
 					if(msg.indexOf("[Login]") != -1) Login(msg);
-
-					else if(msg.indexOf("[SetCurrentLocation]") != -1) SetCurrentLocation(msg);
-					else if(msg.indexOf("[SetDestination]") != -1) SetDestination(msg);
+					
+					else if(msg.indexOf("[FindFreeTime]") != -1) FindFreeTime(msg);
 					else if(msg.indexOf("[GetGroupPeopleLocation]") != -1) GetGroupPeopleLocation(msg);
-					else if(msg.indexOf("[GetDestinationInfo]") != -1) GetDestinationInfo();
+					else if(msg.indexOf("[SendLocation]") != -1) SendLocation(msg);
+					else if(msg.indexOf("[GetDestination]") != -1) GetDestination(msg);
+					else if(msg.indexOf("[getGroupArriveTime]") != -1) GetGroupArriveTime();
 					else if(msg.indexOf("[CancelGroup]") != -1) CancelGroup(msg);
 					else if(msg.indexOf("[SetGroupPeopleOpinion]") != -1) SetGroupPeopleOpinion(msg);
 					else if(msg.indexOf("[GetDaySchedule]") != -1) GetDaySchedule(msg);
@@ -157,28 +158,39 @@ public class Server extends JFrame{
 			}
 		}//end of run
 		
-		public void SetCurrentLocation(String msg)
+		public void FindFreeTime(String msg)
 		{
 			try{
-				String[] temp = msg.substring("[SetCurrentLocation]".length()).split("/");
-				//temp[0] -> X , temp[1] -> Y , temp[2] -> 남은시간
-				oos.writeBoolean(dc.setCurrentLocation(temp[0],temp[1],temp[2]));
+				String Gid = msg.substring("[FindFreeTime]".length());
+				oos.writeObject(new sPacket(dc.findFreeTime(Gid)));
 				oos.flush();
 				
 			}catch(Exception ex){
-				System.out.println("[Server] SetCurrentLocation error "  + ex);
+				Log("[Server]FindFreeTime error " + ex);
 			}
 		}
 		
-		public void SetDestination(String msg)
+		public void GetGroupArriveTime()
 		{
-			String[] temp  = msg.substring("[SetDestination]".length()).split("/");
-			//temp[0] -> X , temp[1] -> Y , temp[2] -> place
 			try{
-			oos.writeBoolean(dc.setDestination(temp[0],temp[1],temp[2]));
-			oos.flush();
+				
+				oos.writeObject(new mPacket(dc.getGroupArriveTime()));
+				oos.flush();
+				
 			}catch(Exception ex){
-				Log("[Server] SetDestination error " + ex);
+				System.out.println("[Server] GetGroupArriveTime error "  + ex);
+			}
+		}
+		
+		public void GetDestination(String msg)
+		{
+			String Gid = msg.substring("[GetDestination]".length());
+			try{
+				oos.writeObject(new sPacket(dc.getDestination(Gid)));
+				oos.flush();
+				
+			}catch(Exception ex){
+				Log("[Server] GetDestination error " + ex);
 			}
 		}
 		
@@ -193,15 +205,18 @@ public class Server extends JFrame{
 			}
 		}
 		
-		public void GetDestinationInfo()
+		public void SendLocation(String msg)
 		{
 			try{
+				String[] temp = msg.substring("[SendLocation]".length()).split("/");
+				//temp[0] 은 위도(X) , temp[1] 은 경도(Y) , temp[2] 는 남은시간 , temp[3] 은 도착여부
 				
-				oos.writeObject(new mPacket(dc.getDestinaionInfo()));
+				oos.writeBoolean(dc.sendLocation(temp[0],temp[1],temp[2],temp[3]));
 				oos.flush();
 				
+				
 			}catch(Exception ex){
-				Log("[Server] GetDestinationInfo error " + ex);
+				Log("[Server] sendLocation error " + ex);
 			}
 		}
 		

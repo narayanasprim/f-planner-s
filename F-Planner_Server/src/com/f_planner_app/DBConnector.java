@@ -5,6 +5,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 
 import javax.swing.JTextArea;
 
@@ -353,14 +355,15 @@ public class DBConnector {
 		 boolean result = false;
 		 String names = "",Gid = "";
 		 ArrayList<String> idList = new ArrayList<String>();
-		
+		 String phone;
 		 try{
 			 
 			 //리스트에서 번호를 얻어 해당 번호의 아이디를 얻는다.
 			 for(int i=0; i<phones.size(); i++)
 			 {
 				 try{
-				 query = "select Id,Name from userinfo1202 where Phone='"+phones.get(i)+"'";
+			     phone = phones.get(i).replaceAll("-","");
+				 query = "select Id,Name from userinfo1202 where Phone='"+phone+"'";
 				 rs = st.executeQuery(query); rs.next();
 				 names += rs.getString("Name")+",";
 				 idList.add(rs.getString("Id"));
@@ -768,28 +771,43 @@ public class DBConnector {
 		}
 		return result;
 	}
-	/*도착지 정보 및 이름을 얻음*/
-	public Message[] getDestinaionInfo()
+	/*해당 그룹의 도착위치와 장소명을 얻음*/
+	public Schedule getDestination(String Gid)
 	{
-		Message[] m = null;
+		Schedule s = null;
 		try{
 			
-			query = "Select X(dLocation) as x,Y(dLocation) as y,Place from Gps1202 where Id='"+this.Id+"'"; 
+			query = "select Place, X(dLocation) as x , Y(dLocation) as y from groupschedule1202 where Gid="+Gid;
 			rs = st.executeQuery(query);
 			if(rs.first())
 			{
-				m = new Message[1]; m[0] = new Message();
-				m[0].name = rs.getString("Place");
-				m[0].time = rs.getString("x");
-				m[0].title = rs.getString("y");
+				s = new Schedule();
+				s.Place = rs.getString("Place");
+				s.sDate = rs.getString("x");
+				s.eDate = rs.getString("y");
 			}
 			
 		}catch(Exception ex){
-			Log("[DBConnector] getDestinaionInfo error " + ex);
+			Log("[DBConnector] getDestination error " + ex);
 		}
 		
-		return m;
+		return s;
 	}
+	/*사용자가 실시간으로 위치와 목적지 도착 여부를 보냄*/
+	public boolean sendLocation(String X, String Y,String rTime ,String isArrive)
+	{
+		boolean result = false;
+		
+		try{
+			query = "Update gps1202 set cLocation=Point("+X+","+Y+") , rTime='"+rTime+"', Arrive = '"+isArrive+"'";
+			if(st.executeUpdate(query)>0) result = true;
+		}catch(Exception ex){
+			Log("[DBConnector] sendLocation error " + ex);
+		}
+		
+		return result;
+	}
+	
 	/*해당 그룹 그룹원들의 위치 정보를 얻음*/
 	public Message[] getGroupPeopleLocation(String Gid)
 	{
@@ -798,7 +816,7 @@ public class DBConnector {
 		try{
 			
 			//그룹번호 Gid에 속하는 사람들 중, 동의한 사람들의 위치 정보를 얻음 
-			query = "select u.Name ,X(gps.cLocation) as x, Y(gps.cLocation) as y from Gps1202 gps, Group1202 g,Userinfo1202 u where g.Gid="+Gid+" and g.Decision='ACCEPT' and g.Id=gps.Id and u.Id=g.Id";
+			query = "select u.name, X(gps.cLocation) as x, Y(gps.cLocation) as y, gps.rTime, gps.Arrive from userinfo1202 u, gps1202 gps, group1202 g where g.Gid="+Gid+" and g.Decision='ACCEPT' and g.Id=u.Id";
 			rs = st.executeQuery(query);
 			if(rs.last()) messages = new Message[rs.getRow()];
 			rs.beforeFirst();
@@ -806,8 +824,10 @@ public class DBConnector {
 			{
 				messages[index] = new Message();
 				messages[index].name = rs.getString("Name");
-				messages[index].time = rs.getString("x");
-				messages[index].title = rs.getString("y");
+				messages[index].title = rs.getString("x");
+				messages[index].leader = rs.getString("y");
+				messages[index].time = rs.getString("rTime");
+				messages[index].decision = rs.getString("Arrive");
 				index++;
 			}
 			
@@ -817,35 +837,152 @@ public class DBConnector {
 		
 		return messages;
 	}
-	/*목적지를 설정*/
-	public boolean setDestination(String X, String Y, String Place)
-	{
-		boolean result = false;
-		try{
-			
-			query = "Update Gps1202 Set dLocation=Point("+X+","+Y+"),Place='"+Place+"' where Id='"+this.Id+"'";
-			if(st.executeUpdate(query)>0) result = true;
-			
-		}catch(Exception ex){
-			Log("[DBConnector] setDestination error " + ex);
-		}
-		
-		return result;
-	}
 	/*현재 위치를 설정*/
-	public boolean setCurrentLocation(String X, String Y, String remainTime)
+	public Message[] getGroupArriveTime()
 	{
-		boolean result = false;
-		
+		Message[] message = null;
+		int index = 0;
 		try{
 			
-			query = "Update Gps1202 set cLocation=Point("+X+","+Y+"), rTime="+remainTime+" where Id='"+this.Id+"'";
-			if(st.executeUpdate(query)>0) result = true;
+			query = "select gs.sDate, gs.gid from group1202 g, groupschedule1202 gs where g.Id='"+this.Id+"' and g.Decision='ACCEPT' and g.gid=gs.gid order by gs.sDate";
+			rs = st.executeQuery(query);
+			if(! rs.last()) return null;
+			message = new Message[rs.getRow()];
+			rs.beforeFirst();
+			while(rs.next())
+			{
+				message[index] = new Message();
+				message[index].Gid = rs.getString("Gid");
+				message[index].time = rs.getString("sDate");
+				index++;
+			}
 			
 		}catch(Exception ex){
-			Log("[DBConnector] setCurrentLocation error " + ex);
+			Log("[DBConnector] getGroupArriveTime error " + ex);
+		}
+		
+		return message;
+	}
+	/*빈 시간을 계산*/
+	public Schedule[] findFreeTime(String Gid)
+	{
+		Schedule[] result = null;
+		ArrayList<Schedule> resultList = new ArrayList<Schedule>();
+		String findSdate="", findEdate="";
+		int findAtime = -1,index=0;
+		int dayPeriod = 0;
+		int acceptPeople = 0;
+		
+		int[][] timeArray = null;
+		
+		try{
+			//해당 Gid그룹의 등록상태를 TRUE 로 변경
+			query = "Update findtime1202 set Register = 'TRUE' where Gid="+Gid;
+			st.executeUpdate(query);
+			
+			
+			//그룹 정보를 얻어온다.
+			query = "Select sDate, eDate, aTime from findtime1202 where Gid="+Gid;
+			rs = st.executeQuery(query);
+			if(rs.first())
+			{
+				findSdate = rs.getString("sDate");
+				findEdate = rs.getString("eDate");
+				findAtime = Integer.parseInt(rs.getString("aTime"));
+				
+				dayPeriod = betweenDay(findSdate,findEdate);
+				timeArray = new int[dayPeriod][1440];
+			}
+			 
+			query = "Select count(Id) as Available from group1202 where Decision='ACCEPT' and Gid="+Gid;
+			rs = st.executeQuery(query); rs.first();
+			acceptPeople = Integer.parseInt(rs.getString("Available"));
+			
+			//해당 Gid 를 기반으로 Group 테이블에서 동의한 사람의 아이디를 얻고,
+			//해당아이디를 기반으로 검색범위 및 이용가능 시간에 맞는 시간표들을 얻는다.
+			query = "select s.sDate , s.eDate from group1202 g , schedule1202 s, findtime1202 f where g.Gid="+Gid+" and g.Decision='ACCEPT' and g.Id=s.Id and g.Gid=f.Gid and s.eDate>f.sDate and s.sDate<f.eDate";
+			rs = st.executeQuery(query);
+			while(rs.next())
+			{
+				for(index=getMinute(rs.getString("sDate")); index<=getMinute(rs.getString("eDate")); index++)
+				timeArray[betweenDay(findSdate,rs.getString("sDate"))][index]+=1;
+			}
+			
+			
+			int start,end;
+			
+			for(int p=1; p<=acceptPeople; p++)
+			{
+				for(int i=0; i<dayPeriod; i++)
+				{
+					start = getMinute(findSdate);
+					for(int j=getMinute(findSdate); j<=getMinute(findEdate); j++)
+					{
+						end = j;
+						if(timeArray[i][j]<p)
+						{
+							if(timeArray[i][start] != timeArray[i][end])//다른 것이 나옴.
+							{
+								if((end - start)>=findAtime)//그 범위가 검색범위에 충족하면,
+								{
+									Schedule s = new Schedule(mixDate(findSdate,i,j),mixDate(findSdate,i,j+end-start));
+									s.wNum = acceptPeople - p;
+									resultList.add(s);
+								}
+							}
+						}
+						else
+							start = end;
+					}
+				}
+			}
+			
+			result = new Schedule[resultList.size()];
+			resultList.toArray(result);
+		
+			
+		}catch(Exception ex){
+			Log("[DBConnector] findFreeTime error " + ex);
 		}
 		
 		return result;
 	}
+	
+	public int getMinute(String date)
+	{
+		return Integer.parseInt(date.substring(8,10))*60+Integer.parseInt(date.substring(10));
+	}
+	
+	public int betweenDay(String date1, String date2)
+	{
+		Calendar c1 = Calendar.getInstance(), c2 = Calendar.getInstance(); 
+		Date d1, d2;
+
+		c1.set(Integer.parseInt(date1.substring(0,4)),Integer.parseInt(date1.substring(4,6))-1,Integer.parseInt(date1.substring(6,8)));
+		c2.set(Integer.parseInt(date2.substring(0,4)),Integer.parseInt(date2.substring(4,6))-1,Integer.parseInt(date2.substring(6,8)));
+		
+		d1 = c1.getTime(); d2 = c2.getTime();
+		long between = d2.getTime() - d1.getTime();
+		
+		return (int)(between/86400000);
+	
+	}
+	
+	public String mixDate(String startDate, int plusDay, int plusMinute)
+	{
+		Calendar c = Calendar.getInstance();
+		String zero = "0";
+		String year, month, date, hour, minute;
+		c.set(Integer.parseInt(startDate.substring(0,4)),Integer.parseInt(startDate.substring(4,6))-1,Integer.parseInt(startDate.substring(6,8)));
+		c.add(Calendar.DATE, plusDay);
+		year = ""+c.get(Calendar.YEAR);
+		
+		if((month = ""+c.get(Calendar.MONTH)).length()==1) month = zero + month; 
+		if((date = ""+c.get(Calendar.DATE)).length()==1) date = zero + month; 
+		if((hour = Integer.toString(plusMinute/60)).length()==1) hour = zero + hour;	
+		if((minute = Integer.toString(plusMinute%60)).length()==1) hour = zero + minute;	
+		
+		return year+month+date+hour+minute;
+	}
+	
 }
