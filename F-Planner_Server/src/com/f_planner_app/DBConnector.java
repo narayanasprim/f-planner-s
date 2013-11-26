@@ -783,6 +783,7 @@ public class DBConnector {
 			
 			query = "select Place, X(dLocation) as x , Y(dLocation) as y from groupschedule1202 where Gid="+Gid;
 			rs = st.executeQuery(query);
+			
 			if(rs.first())
 			{
 				s = new Schedule();
@@ -820,7 +821,7 @@ public class DBConnector {
 		try{
 			
 			//그룹번호 Gid에 속하는 사람들 중, 동의한 사람들의 위치 정보를 얻음 
-			query = "select u.name, X(gps.cLocation) as x, Y(gps.cLocation) as y, gps.rTime, gps.Arrive from userinfo1202 u, gps1202 gps, group1202 g where g.Gid="+Gid+" and g.Decision='ACCEPT' and g.Id=u.Id";
+			query = "select u.name, X(gps.cLocation) as x, Y(gps.cLocation) as y, gps.rTime, gps.Arrive from userinfo1202 u, gps1202 gps, group1202 g where g.Gid="+Gid+" and g.Decision='ACCEPT' and g.Id=u.Id and u.Id=gps.Id";
 			rs = st.executeQuery(query);
 			if(rs.last()) messages = new Message[rs.getRow()];
 			rs.beforeFirst();
