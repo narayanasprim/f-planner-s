@@ -4,9 +4,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 
 import javax.swing.JTextArea;
 
@@ -206,8 +209,9 @@ public class DBConnector {
 		int Wnum = 0;
 		try{
 			
-			query = "select max(Wnum) as Wnum from schedule1202 where Id='"+this.Id+"'";
+			query = "select if(max(Wnum) IS null, 0, max(Wnum)) as Wnum from schedule1202 where Id='"+this.Id+"'";
 			rs = st.executeQuery(query);
+			
 			if(!rs.first()) Wnum = 1;
 			else
 			Wnum = Integer.parseInt(rs.getString("Wnum"))+1;
@@ -219,7 +223,7 @@ public class DBConnector {
 			if(st.executeUpdate(query)>0) result = true;
 			
 		}catch(SQLException e){
-			System.out.println("[DBConnector] addSchedule error " + e);
+			Log("[DBConnector] addSchedule error " + e);
 			result = false;
 		}
 		
@@ -877,12 +881,10 @@ public class DBConnector {
 		
 		try{
 			//해당 Gid그룹의 등록상태를 TRUE 로 변경
-			query = "Update findtime1202 set Register = 'TRUE' where Gid="+Gid;
-			st.executeUpdate(query);
-			
 			
 			//그룹 정보를 얻어온다.
 			query = "Select sDate, eDate, aTime from findtime1202 where Gid="+Gid;
+			Log("FindFreeTime 0 -> " + query);
 			rs = st.executeQuery(query);
 			if(rs.first())
 			{
@@ -891,12 +893,14 @@ public class DBConnector {
 				findAtime = Integer.parseInt(rs.getString("aTime"));
 				
 				dayPeriod = betweenDay(findSdate,findEdate);
-				timeArray = new int[dayPeriod][1440];
+				timeArray = new int[dayPeriod+1][1440];
 			}
 			 
 			query = "Select count(Id) as Available from group1202 where Decision='ACCEPT' and Gid="+Gid;
+			Log("DayPeriod -> " + dayPeriod);
 			rs = st.executeQuery(query); rs.first();
 			acceptPeople = Integer.parseInt(rs.getString("Available"));
+			Log("acceptPeople -> " + acceptPeople);
 			
 			//해당 Gid 를 기반으로 Group 테이블에서 동의한 사람의 아이디를 얻고,
 			//해당아이디를 기반으로 검색범위 및 이용가능 시간에 맞는 시간표들을 얻는다.
@@ -905,45 +909,48 @@ public class DBConnector {
 			while(rs.next())
 			{
 				for(index=getMinute(rs.getString("sDate")); index<=getMinute(rs.getString("eDate")); index++)
-				timeArray[betweenDay(findSdate,rs.getString("sDate"))][index]+=1;
+				{ 
+					timeArray[betweenDay(findSdate,rs.getString("sDate"))][index]+=1;
+				}
 			}
-			
-			
+		
 			int start,end;
 			
-			for(int p=1; p<=acceptPeople; p++)
+			for(int p=0; p<acceptPeople; p++)
 			{
-				for(int i=0; i<dayPeriod; i++)
+				for(int i=0; i<dayPeriod+1; i++)
 				{
 					start = getMinute(findSdate);
 					for(int j=getMinute(findSdate); j<=getMinute(findEdate); j++)
 					{
 						end = j;
-						if(timeArray[i][j]<p)
 						{
-							if(timeArray[i][start] != timeArray[i][end])//다른 것이 나옴.
+							if(timeArray[i][end]>p || end>=getMinute(findEdate))
 							{
 								if((end - start)>=findAtime)//그 범위가 검색범위에 충족하면,
 								{
-									Schedule s = new Schedule(mixDate(findSdate,i,j),mixDate(findSdate,i,j+end-start));
+									Schedule s =  new Schedule(mixDate(findSdate,i,start-getMinute(findSdate)),mixDate(findSdate,i,end-getMinute(findSdate)));
 									s.wNum = acceptPeople - p;
 									resultList.add(s);
+									start = end;
 								}
+								else
+									start = end;
 							}
 						}
-						else
-							start = end;
 					}
 				}
 			}
 			
+			Log("FindFreeTime 계산 결과 갯수 : "+resultList.size());
 			result = new Schedule[resultList.size()];
 			resultList.toArray(result);
-		
 			
 		}catch(Exception ex){
-			Log("[DBConnector] findFreeTime error " + ex);
+			Log("[DBConnector] findFreeTime error "+ex);
+			ex.printStackTrace();
 		}
+		
 		
 		return result;
 	}
@@ -971,18 +978,18 @@ public class DBConnector {
 	public String mixDate(String startDate, int plusDay, int plusMinute)
 	{
 		Calendar c = Calendar.getInstance();
-		String zero = "0";
-		String year, month, date, hour, minute;
-		c.set(Integer.parseInt(startDate.substring(0,4)),Integer.parseInt(startDate.substring(4,6))-1,Integer.parseInt(startDate.substring(6,8)));
-		c.add(Calendar.DATE, plusDay);
-		year = ""+c.get(Calendar.YEAR);
+		SimpleDateFormat form = new SimpleDateFormat("yyyyMMddhhmm",Locale.KOREA);
+		Date date = new Date();
+		try {
+			date = form.parse(startDate);
+			c.setTime(date);
+			c.add(Calendar.DATE, plusDay);
+			c.add(Calendar.MINUTE, plusMinute);
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
 		
-		if((month = ""+c.get(Calendar.MONTH)).length()==1) month = zero + month; 
-		if((date = ""+c.get(Calendar.DATE)).length()==1) date = zero + month; 
-		if((hour = Integer.toString(plusMinute/60)).length()==1) hour = zero + hour;	
-		if((minute = Integer.toString(plusMinute%60)).length()==1) hour = zero + minute;	
-		
-		return year+month+date+hour+minute;
+		return form.format(c.getTime());
 	}
 	
 }

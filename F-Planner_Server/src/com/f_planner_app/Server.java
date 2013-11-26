@@ -109,6 +109,8 @@ public class Server extends JFrame{
 		/*Run*/
 		public void run()
 		{
+			//FindFreeTime("[FindFreeTime]29");
+			
 			try{
 				String msg = null;
 				
@@ -156,6 +158,7 @@ public class Server extends JFrame{
 					oos.close();
 				}catch(Exception e){}
 			}
+			
 		}//end of run
 		
 		public void FindFreeTime(String msg)
@@ -396,6 +399,7 @@ public class Server extends JFrame{
 		public void AddSchedule()
 		{
 			try{
+				Log("보낸이"+this.Id);
 			//해당 플래그를 읽어들였다면, 다음으로 스케줄 객체를 받는다.
 			sPacket packet = (sPacket)ois.readObject();
 			
