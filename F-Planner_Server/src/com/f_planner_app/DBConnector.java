@@ -390,7 +390,7 @@ public class DBConnector {
 			}catch(Exception ex){System.out.println("[DBConnector] requestGroupTime->get Gid");}
 			
 			 //자신의 그룹 컬럼 정보를 업데이트 한다.
-			 query = "insert into group1202 values('"+this.Id+"',"+Gid+",'REQUEST','NOT_DECISION',now())";
+			 query = "insert into group1202 values('"+this.Id+"',"+Gid+",'REQUEST','ACCEPT',now())";
 			 st.executeUpdate(query);
 			
 			//groupSchedule을 만든다.
@@ -609,10 +609,10 @@ public class DBConnector {
 				
 				for( i=0; i<gid.length; i++)
 				{
-					query = "select * from findtime1202 where Gid="+gid[i];
-					rs = st.executeQuery(query); rs.next();
+					query = "select f.Gid,u.name,f.Gname,f.People,f.Pcount,f.Content,f.sDate,f.eDate,f.aTime,f.Register,f.DATE,g.Decision from findtime1202 f, group1202 g , userinfo1202 u where f.Gid="+gid[i]+" and f.Gid=g.Gid and g.Id='"+this.Id+"' and f.Leader=u.Id";
+					rs = st.executeQuery(query); rs.first();
 					group[i] = new Group(Integer.parseInt(rs.getString("Gid")),
-														  rs.getString("Leader"),
+														  rs.getString("name"),
 														  rs.getString("Gname"),
 														  rs.getString("People"),
 														  Integer.parseInt(rs.getString("Pcount")),
@@ -622,6 +622,7 @@ public class DBConnector {
 														  Integer.parseInt(rs.getString("aTime")),
 														  rs.getString("Register"),
 														  rs.getString("DATE"));
+					group[i].Decision = rs.getString("Decision");
 				}
 			}
 			
