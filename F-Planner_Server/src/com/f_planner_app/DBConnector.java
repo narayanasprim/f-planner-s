@@ -813,7 +813,6 @@ public class DBConnector {
 		
 		return result;
 	}
-	
 	/*해당 그룹 그룹원들의 위치 정보를 얻음*/
 	public Message[] getGroupPeopleLocation(String Gid)
 	{
@@ -850,7 +849,7 @@ public class DBConnector {
 		int index = 0;
 		try{
 			
-			query = "select gs.sDate, gs.gid from group1202 g, groupschedule1202 gs where g.Id='"+this.Id+"' and g.Decision='ACCEPT' and g.gid=gs.gid order by gs.sDate";
+			query = "select gs.sDate, gs.gid, gps.Arrive from group1202 g, groupschedule1202 gs,gps1202 gps where g.Id='d' and g.Decision='ACCEPT' and g.gid=gs.gid and g.Id=gps.Id order by gs.sDate";
 			rs = st.executeQuery(query);
 			if(! rs.last()) return null;
 			message = new Message[rs.getRow()];
@@ -860,6 +859,7 @@ public class DBConnector {
 				message[index] = new Message();
 				message[index].Gid = rs.getString("Gid");
 				message[index].time = rs.getString("sDate");
+				message[index].decision = rs.getString("Arrive");
 				index++;
 			}
 			
@@ -959,6 +959,76 @@ public class DBConnector {
 		
 		return result;
 	}
+	/*자신이 속한 모든 그룹 스케줄 정보를 얻음*/
+	public Schedule[] getAllGroupScheduleInfo()
+	{
+		Schedule[] schedule = null;
+		Log(this.Id+"  ->    request own group schedule information ");
+		
+		try{
+			int[] Gid = null;
+			int index = 0;
+			query = "select Gid from group1202 where Id='"+this.Id+"' and Decision='ACCEPT'";
+			rs = st.executeQuery(query);
+			if(rs.last())
+			{
+				Gid = new int[rs.getRow()];
+				schedule = new Schedule[rs.getRow()];
+			}
+			rs.beforeFirst();
+			
+			while(rs.next()) Gid[index++]  =  Integer.parseInt(rs.getString("Gid"));
+			
+			for(int i=0; i<Gid.length; i++)
+			{
+				query = "Select g.Gid, g.sDate, g.eDate, g.Place, f.Gname , f.content from groupschedule1202 g, findtime1202 f where g.Gid="+Gid[i]+" and f.gid=g.gid";
+				rs = st.executeQuery(query);
+				schedule[i] = new Schedule();
+				if(rs.first())
+				{
+					schedule[i].wNum = Integer.parseInt(rs.getString("Gid"));
+					schedule[i].sDate = rs.getString("sDate");
+					schedule[i].eDate = rs.getString("eDate");
+					schedule[i].Place = rs.getString("Place");
+					schedule[i].Title = rs.getString("Gname");
+					schedule[i].Content = rs.getString("Content");
+				}
+				
+			}
+			
+			
+		}catch(Exception ex){
+			Log("[DBConnector] getAllGroupScheduleInfo error  " + ex);
+		}
+		
+		return schedule;
+	}
+	/*연월일을 기반으로 모임 일정 정보들을 얻음*/
+	public Schedule[] getDayGroupSchedule(String YMD)
+	{
+		Schedule[] sch = null;
+		int index = 0;
+		try{
+			query = "select g.Gid, g.sDate, g.eDate, g.Place, f.Gname, f.content where f.Gid=g.Gid and f.sDate>="+YMD+"0000 and f.sDate<"+YMD+"2500";
+			rs = st.executeQuery(query);
+			if(rs.last())//값이 없다면
+			{
+				sch = new Schedule[rs.getRow()];
+				rs.beforeFirst();
+				while(rs.next())
+				{
+					sch[index] = new Schedule(rs.getString("Gname"),rs.getString("sDate"),rs.getString("eDate"),"",rs.getString("Place"),rs.getString("Content"),' ',' ');
+					sch[index++].wNum = Integer.parseInt(rs.getString("Gid"));
+				}
+			}
+			
+		}catch(Exception ex){
+			Log("DBConnector error " + ex);
+		}
+		
+		return sch;
+	}
+	
 	
 	public int getMinute(String date)
 	{
