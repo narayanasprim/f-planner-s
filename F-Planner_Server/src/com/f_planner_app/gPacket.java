@@ -44,6 +44,7 @@ class Group implements Serializable
 	public int aTime;
 	public String Register;
 	public String DATE;
+	public String Decision;
 	
 	public Group()
 	{
