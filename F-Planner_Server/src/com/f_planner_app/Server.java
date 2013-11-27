@@ -118,6 +118,7 @@ public class Server extends JFrame{
 				{
 					if(msg.indexOf("[Login]") != -1) Login(msg);
 					else if(msg.indexOf("[GetAllGroupScheduleInfo]") != -1) GetAllGroupScheduleInfo();
+					else if(msg.indexOf("[AddGroupSchedule]") != -1) AddGroupSchedule();
 					else if(msg.indexOf("[FindFreeTime]") != -1) FindFreeTime(msg);
 					else if(msg.indexOf("[GetGroupPeopleLocation]") != -1) GetGroupPeopleLocation(msg);
 					else if(msg.indexOf("[SendLocation]") != -1) SendLocation(msg);
@@ -161,6 +162,19 @@ public class Server extends JFrame{
 			
 		}//end of run
 		
+		public void AddGroupSchedule()
+		{
+			try{
+				
+				sPacket packet = (sPacket)ois.readObject();
+				oos.writeBoolean(dc.addGroupSchedule(packet.getSchedule()));
+				oos.flush();
+				
+			}catch(Exception ex){
+				Log("[Server]AddGroupSchedule error " + ex);
+			}
+		}
+		
 		public void GetDayGroupSchedule(String msg)
 		{
 			String YMD = msg.substring("[GetDayGroupSchedule]".length());
@@ -177,7 +191,6 @@ public class Server extends JFrame{
 		public void GetAllGroupScheduleInfo()
 		{
 			try{
-				Log("∞Ÿ ø√ Ω∫ƒ…¡Ÿ");
 				oos.writeObject(new sPacket(dc.getAllGroupScheduleInfo()));
 				oos.flush();
 				

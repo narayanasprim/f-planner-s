@@ -901,8 +901,6 @@ public class DBConnector {
 			Log("DayPeriod -> " + dayPeriod);
 			rs = st.executeQuery(query); rs.first();
 			acceptPeople = Integer.parseInt(rs.getString("Available"));
-			Log("acceptPeople -> " + acceptPeople);
-			
 			//해당 Gid 를 기반으로 Group 테이블에서 동의한 사람의 아이디를 얻고,
 			//해당아이디를 기반으로 검색범위 및 이용가능 시간에 맞는 시간표들을 얻는다.
 			query = "select s.sDate , s.eDate from group1202 g , schedule1202 s, findtime1202 f where g.Gid="+Gid+" and g.Decision='ACCEPT' and g.Id=s.Id and g.Gid=f.Gid and s.eDate>f.sDate and s.sDate<f.eDate";
@@ -914,9 +912,6 @@ public class DBConnector {
 					timeArray[betweenDay(findSdate,rs.getString("sDate"))][index]+=1;
 				}
 			}
-			
-			
-		
 			int start,end;
 			
 			for(int p=0; p<acceptPeople; p++)
@@ -927,9 +922,9 @@ public class DBConnector {
 					for(int j=getMinute(findSdate); j<=getMinute(findEdate); j++)
 					{
 						end = j;
+							
+						if(timeArray[i][end]>p || end>=getMinute(findEdate))
 						{
-							if(timeArray[i][end]>p || end>=getMinute(findEdate))
-							{
 								if((end - start)>=findAtime)//그 범위가 검색범위에 충족하면,
 								{
 									Schedule s =  new Schedule(mixDate(findSdate,i,start-getMinute(findSdate)),mixDate(findSdate,i,end-getMinute(findSdate)));
@@ -939,8 +934,9 @@ public class DBConnector {
 								}
 								else
 									start = end;
-							}
 						}
+							else 
+								start = end;
 					}
 				}
 			}
@@ -956,6 +952,23 @@ public class DBConnector {
 			ex.printStackTrace();
 		}
 		
+		
+		return result;
+	}
+	/*그룹 스케줄을 등록함*/
+	public boolean addGroupSchedule(Schedule s)
+	{
+		boolean result = false;
+		try{//wNum 에 Gid 를 저장해서 넘긴다. , title에 X표, content 에 Y좌표를 저장해온다.
+			query  = "Insert into groupschedule1202 values('"+s.wNum+"','"+s.sDate+"','"+s.eDate+"','"+s.Place+"',Point("+s.Title+","+s.Content+"))";
+			st.executeUpdate(query);
+			
+			query = "update findtime1202 set Register='TRUE' where Gid="+s.wNum;
+			if(st.executeUpdate(query)>0) result = true;
+			
+		}catch(Exception ex){
+			System.out.println();
+		}
 		
 		return result;
 	}
@@ -1029,7 +1042,7 @@ public class DBConnector {
 		return sch;
 	}
 	
-	
+
 	public int getMinute(String date)
 	{
 		return Integer.parseInt(date.substring(8,10))*60+Integer.parseInt(date.substring(10));
@@ -1067,4 +1080,6 @@ public class DBConnector {
 		return form.format(c.getTime());
 	}
 	
+	
+
 }
