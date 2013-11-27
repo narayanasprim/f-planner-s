@@ -609,10 +609,10 @@ public class DBConnector {
 				
 				for( i=0; i<gid.length; i++)
 				{
-					query = "select f.Gid,u.name,f.Gname,f.People,f.Pcount,f.Content,f.sDate,f.eDate,f.aTime,f.Register,f.DATE,g.Decision from findtime1202 f, group1202 g , userinfo1202 u where f.Gid="+gid[i]+" and f.Gid=g.Gid and g.Id='"+this.Id+"' and f.Leader=u.Id";
+					query = "select f.Gid,u.name,f.leader,f.Gname,f.People,f.Pcount,f.Content,f.sDate,f.eDate,f.aTime,f.Register,f.DATE,g.Decision from findtime1202 f, group1202 g , userinfo1202 u where f.Gid="+gid[i]+" and f.Gid=g.Gid and g.Id='"+this.Id+"' and f.Leader=u.Id";
 					rs = st.executeQuery(query); rs.first();
 					group[i] = new Group(Integer.parseInt(rs.getString("Gid")),
-														  rs.getString("name"),
+														  (rs.getString("name")+"/"+rs.getString("leader")),
 														  rs.getString("Gname"),
 														  rs.getString("People"),
 														  Integer.parseInt(rs.getString("Pcount")),
@@ -882,7 +882,6 @@ public class DBConnector {
 		int[][] timeArray = null;
 		
 		try{
-			//해당 Gid그룹의 등록상태를 TRUE 로 변경
 			
 			//그룹 정보를 얻어온다.
 			query = "Select sDate, eDate, aTime from findtime1202 where Gid="+Gid;
@@ -915,6 +914,8 @@ public class DBConnector {
 					timeArray[betweenDay(findSdate,rs.getString("sDate"))][index]+=1;
 				}
 			}
+			
+			
 		
 			int start,end;
 			
@@ -945,6 +946,8 @@ public class DBConnector {
 			}
 			
 			Log("FindFreeTime 계산 결과 갯수 : "+resultList.size());
+			if(resultList.size()==0) return null;
+			
 			result = new Schedule[resultList.size()];
 			resultList.toArray(result);
 			
