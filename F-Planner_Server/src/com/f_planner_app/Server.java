@@ -94,7 +94,6 @@ public class Server extends JFrame{
 		
 		private ObjectInputStream ois;
 		
-		
 		ClientRequest(Socket sock)
 		{
 			dc = new DBConnector(display);
@@ -109,7 +108,6 @@ public class Server extends JFrame{
 		/*Run*/
 		public void run()
 		{
-			//FindFreeTime("[FindFreeTime]29");
 			
 			try{
 				String msg = null;
@@ -117,13 +115,16 @@ public class Server extends JFrame{
 				while((msg = ois.readUTF()) !=null)
 				{
 					if(msg.indexOf("[Login]") != -1) Login(msg);
+					else if(msg.indexOf("[GetDayGroupSchedule]") !=-1) GetDayGroupSchedule(msg);
+					else if(msg.indexOf("[GetGroupPeoplePhone]") != -1) GetGroupPeoplePhone(msg);
+					else if(msg.indexOf("[GetAllGroupSchedule]") != -1) GetAllGroupSchedule();
 					else if(msg.indexOf("[GetAllGroupScheduleInfo]") != -1) GetAllGroupScheduleInfo();
 					else if(msg.indexOf("[AddGroupSchedule]") != -1) AddGroupSchedule();
 					else if(msg.indexOf("[FindFreeTime]") != -1) FindFreeTime(msg);
 					else if(msg.indexOf("[GetGroupPeopleLocation]") != -1) GetGroupPeopleLocation(msg);
 					else if(msg.indexOf("[SendLocation]") != -1) SendLocation(msg);
 					else if(msg.indexOf("[GetDestination]") != -1) GetDestination(msg);
-					else if(msg.indexOf("[getGroupArriveTime]") != -1) GetGroupArriveTime();
+					else if(msg.indexOf("[GetGroupArriveTime]") != -1) GetGroupArriveTime();
 					else if(msg.indexOf("[CancelGroup]") != -1) CancelGroup(msg);
 					else if(msg.indexOf("[SetGroupPeopleOpinion]") != -1) SetGroupPeopleOpinion(msg);
 					else if(msg.indexOf("[GetDaySchedule]") != -1) GetDaySchedule(msg);
@@ -149,7 +150,7 @@ public class Server extends JFrame{
 				}
 				
 			}catch(Exception ex){
-				Log("[Server->ClientRuequst] run error " + ex);
+				Log("Client "+this.Id+" Á¾·á ");
 			}
 			finally
 			{
@@ -161,6 +162,31 @@ public class Server extends JFrame{
 			}
 			
 		}//end of run
+		
+		public void GetGroupPeoplePhone(String msg)
+		{
+			try{
+				String Gid = msg.substring("[GetGroupPeoplePhone]".length());
+				
+				oos.writeObject(new gPacket(dc.getGroupPeoplePhone(Gid)));
+				oos.flush();
+				
+			}catch(Exception ex){
+				Log("[Server] GetGroupPeoplePhone error " + ex);
+			}
+		}
+		
+		public void GetAllGroupSchedule()
+		{
+			try{
+				
+				oos.writeObject(new mPacket(dc.getAllGroupSchedule()));
+				oos.flush();
+				
+			}catch(Exception ex){
+				Log("GetAllGroupSchedule error " + ex);
+			}
+		}
 		
 		public void AddGroupSchedule()
 		{
