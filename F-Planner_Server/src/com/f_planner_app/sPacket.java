@@ -120,12 +120,12 @@ class Schedule implements Serializable,Comparable<Schedule>
 	public int compareTo(Schedule s) {
 		int result = 0;
 		
-		if(Integer.parseInt(this.sDate)>Integer.parseInt(s.sDate)) result = 1;
-		else if(Integer.parseInt(this.sDate)<Integer.parseInt(s.sDate)) result = -1;
+		if(Long.parseLong(this.sDate)>Long.parseLong(s.sDate)) result = 1;
+		else if(Long.parseLong(this.sDate)<Long.parseLong(s.sDate)) result = -1;
 		else
 		{
-			if(Integer.parseInt(this.eDate)>Integer.parseInt(s.eDate)) result = 1;
-			else if(Integer.parseInt(this.eDate)<Integer.parseInt(s.eDate)) result = -1;
+			if(Long.parseLong(this.eDate)>Long.parseLong(s.eDate)) result = 1;
+			else if(Long.parseLong(this.eDate)<Long.parseLong(s.eDate)) result = -1;
 		}
 			
 		return result;

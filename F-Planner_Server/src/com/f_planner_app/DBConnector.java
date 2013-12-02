@@ -250,7 +250,7 @@ public class DBConnector {
 			}
 			
 		}catch(Exception ex){
-			Log("DBConnector error " + ex);
+			Log("[DBConnector] error " + ex);
 		}
 		
 		return sch;
@@ -567,7 +567,7 @@ public class DBConnector {
 		Message[] message = null;
 		int index = 0;
 		try{
-			query = "select m.Unum , m.title,m.leader, m.content, m.gid, m.time ,if(m.gid IS NULL,'NOTIFY',g.type) as Type , if(m.gid IS NULL,'NOT_DECISION',g.Decision) as Decision from message1202 m , group1202 g where m.receiver='"+this.Id+"' and m.receiver = g.Id and (m.gid=g.gid or m.gid is null) group by m.Unum order by m.time desc";
+			query = "select m.Unum , m.title, u.name as leader ,m.content, m.gid, m.time ,if(m.gid IS NULL,'NOTIFY',g.type) as Type , if(m.gid IS NULL,'NOT_DECISION',g.Decision) as Decision from message1202 m , group1202 g, userinfo1202 u where m.receiver='"+this.Id+"' and u.Id=m.leader and m.receiver = g.Id and (m.gid=g.gid or m.gid is null) group by m.Unum order by m.time desc;";
 			rs = st.executeQuery(query);
 			
 			if(!rs.next()) return message;
@@ -606,10 +606,11 @@ public class DBConnector {
 				
 				rs.beforeFirst();
 				while(rs.next()) gid[i++] = rs.getString("Gid");
-				
+				Log("그룹 갯수 : " + gid.length);
 				for( i=0; i<gid.length; i++)
 				{
-					query = "select f.Gid,u.name,f.leader,f.Gname,f.People,f.Pcount,f.Content,f.sDate,f.eDate,f.aTime,f.Register,f.DATE,g.Decision from findtime1202 f, group1202 g , userinfo1202 u where f.Gid="+gid[i]+" and f.Gid=g.Gid and g.Id='"+this.Id+"' and f.Leader=u.Id";
+					query = "select f.Gid,f.leader,u.name,f.Gname,f.People,f.Pcount,f.Content,f.sDate,f.eDate,f.aTime,f.Register,f.DATE,g.Decision from findtime1202 f, group1202 g , userinfo1202 u where f.Gid="+gid[i]+" and f.Gid=g.Gid and g.Id='"+this.Id+"' and f.Leader=u.Id";
+//					query = "select f.Gid,f.leader,f.Gname,f.People,f.Pcount,f.Content,f.sDate,f.eDate,f.aTime,f.Register,f.DATE,g.Decision from findtime1202 f, group1202 g where f.Gid="+gid[i]+" and f.Gid=g.Gid and g.Id='"+this.Id+"'";
 					rs = st.executeQuery(query); rs.first();
 					group[i] = new Group(Integer.parseInt(rs.getString("Gid")),
 														  (rs.getString("name")+"/"+rs.getString("leader")),
@@ -791,6 +792,7 @@ public class DBConnector {
 				s.Place = rs.getString("Place");
 				s.sDate = rs.getString("x");
 				s.eDate = rs.getString("y");
+				Log("GetDestination 전송값 : " + s.Place+", " + s.sDate+", " + s.eDate );
 			}
 			
 		}catch(Exception ex){
@@ -805,6 +807,7 @@ public class DBConnector {
 		boolean result = false;
 		
 		try{
+			Log("SendLocation " + "X : " + X + " Y : " + Y + " isArrive : " + isArrive+" rTime : " + rTime );
 			query = "Update gps1202 set cLocation=Point("+X+","+Y+") , rTime='"+rTime+"', Arrive = '"+isArrive+"'";
 			if(st.executeUpdate(query)>0) result = true;
 		}catch(Exception ex){
@@ -845,14 +848,16 @@ public class DBConnector {
 	/*현재 위치를 설정*/
 	public Message[] getGroupArriveTime()
 	{
+		Log(this.Id+" 가 getGroupArriveTime 정보 요청"); 
 		Message[] message = null;
 		int index = 0;
 		try{
 			
-			query = "select gs.sDate, gs.gid, gps.Arrive from group1202 g, groupschedule1202 gs,gps1202 gps where g.Id='d' and g.Decision='ACCEPT' and g.gid=gs.gid and g.Id=gps.Id order by gs.sDate";
+			query = "select gs.sDate, gs.gid, gps.Arrive from group1202 g, groupschedule1202 gs,gps1202 gps where g.Id='"+this.Id+"' and g.Decision='ACCEPT' and g.gid=gs.gid and g.Id=gps.Id order by gs.sDate";
 			rs = st.executeQuery(query);
-			if(! rs.last()) return null;
+			if(!rs.last()) return message;
 			message = new Message[rs.getRow()];
+			Log(this.Id+" getGroupArriveTime 결과 개수 : " + rs.getRow());
 			rs.beforeFirst();
 			while(rs.next())
 			{
@@ -922,9 +927,9 @@ public class DBConnector {
 					for(int j=getMinute(findSdate); j<=getMinute(findEdate); j++)
 					{
 						end = j;
-							
-						if(timeArray[i][end]>p || end>=getMinute(findEdate))
 						{
+							if(timeArray[i][end]>p || end>=getMinute(findEdate))
+							{
 								if((end - start)>=findAtime)//그 범위가 검색범위에 충족하면,
 								{
 									Schedule s =  new Schedule(mixDate(findSdate,i,start-getMinute(findSdate)),mixDate(findSdate,i,end-getMinute(findSdate)));
@@ -934,12 +939,12 @@ public class DBConnector {
 								}
 								else
 									start = end;
+							}
 						}
-							else 
-								start = end;
 					}
 				}
 			}
+
 			
 			Log("FindFreeTime 계산 결과 갯수 : "+resultList.size());
 			if(resultList.size()==0) return null;
@@ -955,27 +960,11 @@ public class DBConnector {
 		
 		return result;
 	}
-	/*그룹 스케줄을 등록함*/
-	public boolean addGroupSchedule(Schedule s)
-	{
-		boolean result = false;
-		try{//wNum 에 Gid 를 저장해서 넘긴다. , title에 X표, content 에 Y좌표를 저장해온다.
-			query  = "Insert into groupschedule1202 values('"+s.wNum+"','"+s.sDate+"','"+s.eDate+"','"+s.Place+"',Point("+s.Title+","+s.Content+"))";
-			st.executeUpdate(query);
-			
-			query = "update findtime1202 set Register='TRUE' where Gid="+s.wNum;
-			if(st.executeUpdate(query)>0) result = true;
-			
-		}catch(Exception ex){
-			System.out.println();
-		}
-		
-		return result;
-	}
 	/*자신이 속한 모든 그룹 스케줄 정보를 얻음*/
 	public Schedule[] getAllGroupScheduleInfo()
 	{
 		Schedule[] schedule = null;
+		ArrayList<Schedule> list = new ArrayList<Schedule>();
 		Log(this.Id+"  ->    request own group schedule information ");
 		
 		try{
@@ -986,7 +975,6 @@ public class DBConnector {
 			if(rs.last())
 			{
 				Gid = new int[rs.getRow()];
-				schedule = new Schedule[rs.getRow()];
 			}
 			rs.beforeFirst();
 			
@@ -996,19 +984,27 @@ public class DBConnector {
 			{
 				query = "Select g.Gid, g.sDate, g.eDate, g.Place, f.Gname , f.content from groupschedule1202 g, findtime1202 f where g.Gid="+Gid[i]+" and f.gid=g.gid";
 				rs = st.executeQuery(query);
-				schedule[i] = new Schedule();
-				if(rs.first())
-				{
-					schedule[i].wNum = Integer.parseInt(rs.getString("Gid"));
-					schedule[i].sDate = rs.getString("sDate");
-					schedule[i].eDate = rs.getString("eDate");
-					schedule[i].Place = rs.getString("Place");
-					schedule[i].Title = rs.getString("Gname");
-					schedule[i].Content = rs.getString("Content");
-				}
 				
+				if(rs.first())
+				{	
+					Schedule s = new Schedule();
+					s.wNum = Integer.parseInt(rs.getString("Gid"));
+					s.sDate = rs.getString("sDate");
+					s.eDate = rs.getString("eDate");
+					s.Place = rs.getString("Place");
+					s.Title = rs.getString("Gname");
+					s.Content = rs.getString("Content");
+					s.Priority = 'G';
+					Log("index 값 : " + i);
+					list.add(s);
+				}
 			}
-			
+			if(!list.isEmpty())
+			{
+				schedule = new Schedule[list.size()];
+				list.toArray(schedule);
+			}
+			Log("반환 결과 : " + list.size());
 			
 		}catch(Exception ex){
 			Log("[DBConnector] getAllGroupScheduleInfo error  " + ex);
@@ -1019,21 +1015,23 @@ public class DBConnector {
 	/*연월일을 기반으로 모임 일정 정보들을 얻음*/
 	public Schedule[] getDayGroupSchedule(String YMD)
 	{
+		Log(this.Id+" 가 getDayGroupSchdule 호출");
 		Schedule[] sch = null;
 		int index = 0;
 		try{
-			query = "select g.Gid, g.sDate, g.eDate, g.Place, f.Gname, f.content where f.Gid=g.Gid and f.sDate>="+YMD+"0000 and f.sDate<"+YMD+"2500";
+			query = "select g.Gid, g.sDate, g.eDate, g.Place, f.Gname, f.content from groupschedule1202 g, findtime1202 f where f.Gid=g.Gid and f.sDate>="+YMD+"0000 and f.sDate<"+YMD+"2500";
 			rs = st.executeQuery(query);
-			if(rs.last())//값이 없다면
+			if(!rs.last()) return null;
+			
+			sch = new Schedule[rs.getRow()];
+			rs.beforeFirst();
+			while(rs.next())
 			{
-				sch = new Schedule[rs.getRow()];
-				rs.beforeFirst();
-				while(rs.next())
-				{
-					sch[index] = new Schedule(rs.getString("Gname"),rs.getString("sDate"),rs.getString("eDate"),"",rs.getString("Place"),rs.getString("Content"),' ',' ');
-					sch[index++].wNum = Integer.parseInt(rs.getString("Gid"));
-				}
+				sch[index] = new Schedule(rs.getString("Gname"),rs.getString("sDate"),rs.getString("eDate"),"",rs.getString("Place"),rs.getString("Content"),' ',' ');
+				sch[index].wNum = Integer.parseInt(rs.getString("Gid"));
+				sch[index++].Priority='G';
 			}
+			
 			
 		}catch(Exception ex){
 			Log("DBConnector error " + ex);
@@ -1041,8 +1039,82 @@ public class DBConnector {
 		
 		return sch;
 	}
+	/*그룹 스케줄을 등록함*/
+	public boolean addGroupSchedule(Schedule s)
+	{
+		Log("그룹 등록");
+		boolean result = false;
+		try{//wNum 에 Gid 를 저장해서 넘긴다. , title에 X표, content 에 Y좌표를 저장해온다.
+			query  = "Insert into groupschedule1202 values("+s.wNum+",null,'"+s.sDate+"','"+s.eDate+"','"+s.Place+"',Point("+s.Title+","+s.Content+"))";
+			if(st.executeUpdate(query)>0) result = true; 
+			query = "update findtime1202 set Register='TRUE' where Gid="+s.wNum;
+			if(st.executeUpdate(query)>0) result = true;
+			
+		}catch(Exception ex){
+			System.out.println();
+		}
+		Log("그룹등록 결과 : " + result);
+		
+		return result;
+	}
+	/*자신이 속한 모든 그룹 도착지 X,Y,Gid,sDate를 반환*/
+	public Message[] getAllGroupSchedule()
+	{
+		Message[] message = null;
+		int index = 0;
+		try{
+			Log("GetAllGroupInfo");
+			query = "select gs.Gid,gs.sDate,X(gs.dLocation) as x,Y(gs.dLocation) as y from groupschedule1202 gs, group1202 g where g.Decision='ACCEPT' and g.Gid=gs.Gid and g.Id='"+this.Id+"' group by g.Gid";
+			rs = st.executeQuery(query);
+			if(!rs.last()) return null;
+			
+			message = new Message[rs.getRow()];
+			rs.beforeFirst();
+			while(rs.next())
+			{
+				message[index] = new Message();
+				message[index].Gid = rs.getString("Gid");
+				message[index].time = rs.getString("sDate");
+				message[index].title = rs.getString("x");
+				message[index].content = rs.getString("y");
+				
+				index++;
+			}
+			
+		}catch(Exception ex){
+			Log("[DBConnector] getAllGroupSchedule error " + ex);
+		}
+		
+		return message;
+	}
+	/*그룹에 속하고, 동의한 사람들의 핸드폰 번호를 얻음*/
+	public Group[] getGroupPeoplePhone(String Gid)
+	{
+		Log(this.Id+" 의 요청으로 그룹원 핸드폰 번호를 전송");
+		Group[] group = null;
+		int index = 0;
+		try{
+			
+			query = "select u.Phone from group1202 g, userinfo1202 u where g.Decision='ACCEPT' and g.Id = u.Id and g.Gid="+Gid;
+			rs = st.executeQuery(query);
+			if(!rs.last()) return null;
+			group = new Group[rs.getRow()];
+			rs.beforeFirst();
+			while(rs.next())
+			{
+				group[index] = new Group();
+				group[index].People = rs.getString("Phone");
+				index++;
+			}
+			
+			for(Group p : group)
+				Log("동의자 번호  : " + p.People) ;
+			
+		}catch(Exception ex){Log("GetGroupPeoplePhone error " + ex);}
+		
+		return group;
+	}
 	
-
 	public int getMinute(String date)
 	{
 		return Integer.parseInt(date.substring(8,10))*60+Integer.parseInt(date.substring(10));
@@ -1066,7 +1138,7 @@ public class DBConnector {
 	public String mixDate(String startDate, int plusDay, int plusMinute)
 	{
 		Calendar c = Calendar.getInstance();
-		SimpleDateFormat form = new SimpleDateFormat("yyyyMMddhhmm",Locale.KOREA);
+		SimpleDateFormat form = new SimpleDateFormat("yyyyMMddHHmm",Locale.KOREA);
 		Date date = new Date();
 		try {
 			date = form.parse(startDate);
